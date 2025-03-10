@@ -6,6 +6,7 @@ import {
   dataPosition,
   dataStepAttribute,
 } from "./dataAttributes";
+import { TourTooltipProps } from "./components/TourTooltip";
 
 const { div, b, a, h1 } = dom.tags;
 
@@ -110,4 +111,49 @@ export const getMockSteps = (): TourStep[] => {
 
 export const getMockTour = (targetElement: HTMLElement = document.body) => {
   return new Tour(targetElement);
+};
+
+export const getMockTourTooltipProps = (): TourTooltipProps => {
+  const steps = getMockSteps();
+  const mockElement = document.createElement("div");
+  document.body.appendChild(mockElement); 
+
+  return {
+    step: { ...steps[0], element: mockElement }, // Assign real DOM element
+    steps,
+    currentStep: 0,
+
+    bullets: true,
+    onBulletClick: jest.fn(),
+
+    buttons: true,
+    nextLabel: "Next",
+    onNextClick: jest.fn(),
+    prevLabel: "Previous",
+    onPrevClick: jest.fn(),
+    skipLabel: "Skip",
+    onSkipClick: jest.fn(),
+    buttonClass: "btn",
+    nextToDone: false,
+    doneLabel: "Done",
+    hideNext: false,
+    hidePrev: false,
+
+    progress: true,
+    progressBarAdditionalClass: "progress-extra",
+
+    stepNumbers: true,
+    stepNumbersOfLabel: "of",
+
+    scrollToElement: false,
+    scrollPadding: 10,
+
+    dontShowAgain: true,
+    dontShowAgainLabel: "Don't show again",
+    onDontShowAgainChange: jest.fn(),
+    refreshes: { val: 1, oldVal: 1, rawVal: 1, _oldVal: 0, _bindings: [], _listeners: [] },
+    showStepNumbers: true,
+    autoPosition: true,
+    positionPrecedence: ["bottom", "top", "right", "left"],
+  };
 };
