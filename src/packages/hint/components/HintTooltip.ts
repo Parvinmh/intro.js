@@ -14,6 +14,7 @@ export type HintTooltipProps = Omit<
   closeButtonOnClick: (hintItem: HintItem) => void;
   closeButtonLabel: string;
   closeButtonClassName: string;
+  className?: string;
 };
 
 export const HintTooltip = ({
@@ -22,6 +23,7 @@ export const HintTooltip = ({
   closeButtonOnClick,
   closeButtonLabel,
   closeButtonClassName,
+  className,
   ...props
 }: HintTooltipProps) => {
   return Tooltip(
@@ -43,7 +45,7 @@ export const HintTooltip = ({
     },
     [
       div(
-        { className: tooltipTextClassName },
+        { className: `${tooltipTextClassName} ${className || ""}` },
         p(hintItem.hint || ""),
         closeButtonEnabled
           ? a(
