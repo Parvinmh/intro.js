@@ -451,13 +451,8 @@ export const TourTooltip = ({
 
   children.push(Header({ title, skipLabel, onSkipClick }));
 
-  const template = document.createElement("template");
-  template.innerHTML = text;
-  
-  const parsedContent = document.createRange().createContextualFragment(text);
-  
-  children.push(div({ className: tooltipTextClassName }, parsedContent));
-  
+  children.push(div({ className: tooltipTextClassName }, text));
+
   if (dontShowAgain) {
     children.push(DontShowAgain({ dontShowAgainLabel, onDontShowAgainChange }));
   }

@@ -21,8 +21,8 @@ describe("TourTooltip", () => {
 
   test("should render correctly", async () => {
     const tooltip = TourTooltip(mockProps);
-    document.body.appendChild(tooltip); 
-  
+    document.body.appendChild(tooltip);
+
     // Assert
     expect(content(tooltipText())).toBe(mockProps.step.intro);
     expect(content(skipButton())).toBe(mockProps.skipLabel);
@@ -32,7 +32,7 @@ describe("TourTooltip", () => {
   test("should call onNextClick when next button is clicked", async () => {
     const tooltip = TourTooltip(mockProps);
     document.body.appendChild(tooltip);
-  
+
     // Act
     nextButton().click();
 
@@ -45,7 +45,7 @@ describe("TourTooltip", () => {
     mockProps.currentStep = 1;
     const tooltip = TourTooltip(mockProps);
     document.body.appendChild(tooltip);
-  
+
     // Act
     prevButton().click();
 
@@ -57,7 +57,7 @@ describe("TourTooltip", () => {
     // Arrange
     const tooltip = TourTooltip(mockProps);
     document.body.appendChild(tooltip);
-  
+
     // Act
     skipButton().click();
 
@@ -70,7 +70,7 @@ describe("TourTooltip", () => {
     mockProps.dontShowAgain = true;
     const tooltip = TourTooltip(mockProps);
     document.body.appendChild(tooltip);
-  
+
     // Act
     const checkbox = find(".introjs-dontShowAgain input");
     checkbox.click();
@@ -86,7 +86,7 @@ describe("TourTooltip", () => {
     // Act
     const tooltip = TourTooltip(mockProps);
     document.body.appendChild(tooltip);
-  
+
     // Assert
     expect(find(".introjs-dontShowAgain")).toBeNull();
   });
@@ -98,7 +98,7 @@ describe("TourTooltip", () => {
     // Act
     const tooltip = TourTooltip(mockProps);
     document.body.appendChild(tooltip);
-  
+
     // Assert
     expect(find(`.${bulletsClassName}`)).not.toBeNull();
   });
@@ -108,7 +108,7 @@ describe("TourTooltip", () => {
     mockProps.bullets = true;
     const tooltip = TourTooltip(mockProps);
     document.body.appendChild(tooltip);
-  
+
     // Act
     const bullet = find(`.${bulletsClassName} a`);
     bullet.click();
@@ -126,7 +126,7 @@ describe("TourTooltip", () => {
     // Act
     const tooltip = TourTooltip(mockProps);
     document.body.appendChild(tooltip);
-  
+
     // Assert
     const progressBar = find(`.${progressBarClassName}`);
     expect(progressBar).not.toBeNull();
@@ -144,7 +144,7 @@ describe("TourTooltip", () => {
     // Act
     const tooltip = TourTooltip(mockProps);
     document.body.appendChild(tooltip);
-  
+
     // Assert
     expect(targetElement.className).toContain("introjs-showElement");
   });

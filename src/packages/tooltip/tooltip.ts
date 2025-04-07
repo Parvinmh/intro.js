@@ -3,6 +3,7 @@ import getWindowSize from "../../util/getWindowSize";
 import dom, { ChildDom, State } from "../dom";
 import { arrowClassName, tooltipClassName } from "../tour/classNames";
 import { determineAutoPosition, TooltipPosition } from "./tooltipPosition";
+import { tooltipTextClassName } from "../tour/classNames";
 
 const { div } = dom.tags;
 
@@ -416,10 +417,35 @@ export const Tooltip = (
     }
   });
 
+  const tooltipTextDiv = (children ?? []).find(
+    (child) =>
+      child instanceof HTMLElement &&
+      child.classList.contains("introjs-tooltiptext")
+  );
+
+  const tooltipText =
+    (tooltipTextDiv instanceof HTMLElement ? tooltipTextDiv.textContent : "") ||
+    "";
+  const template = document.createElement("template");
+  template.innerHTML = tooltipText;
+  const parsedContent = document
+    .createRange()
+    .createContextualFragment(tooltipText);
+
+  const updatedChildren = (children ?? []).map((child) => {
+    if (
+      child instanceof HTMLElement &&
+      child.classList.contains("introjs-tooltiptext")
+    ) {
+      return div({ className: tooltipTextClassName }, parsedContent);
+    }
+    return child;
+  });
+
   const tooltip = div(
     {
       style: () =>
-        `top: ${top.val}; right: ${right.val}; bottom: ${bottom.val}; left: ${left.val}; margin-left: ${marginLeft.val}; margin-top: ${marginTop.val};opacity: ${opacity.val}`,
+        `top: ${top.val}; right: ${right.val}; bottom: ${bottom.val}; left: ${left.val}; margin-left: ${marginLeft.val}; margin-top: ${marginTop.val}; opacity: ${opacity.val}`,
       className: () => `${tooltipClassName} introjs-${position.val}`,
       role: "dialog",
       onclick: onClick ?? null,
@@ -429,7 +455,7 @@ export const Tooltip = (
         tooltipPosition: position,
         tooltipBottomOverflow: tooltipBottomOverflow,
       }),
-      [children],
+      updatedChildren,
     ]
   );
 

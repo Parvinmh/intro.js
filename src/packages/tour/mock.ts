@@ -116,7 +116,7 @@ export const getMockTour = (targetElement: HTMLElement = document.body) => {
 export const getMockTourTooltipProps = (): TourTooltipProps => {
   const steps = getMockSteps();
   const mockElement = document.createElement("div");
-  document.body.appendChild(mockElement); 
+  document.body.appendChild(mockElement);
 
   return {
     step: { ...steps[0], element: mockElement }, // Assign real DOM element
@@ -151,7 +151,14 @@ export const getMockTourTooltipProps = (): TourTooltipProps => {
     dontShowAgain: true,
     dontShowAgainLabel: "Don't show again",
     onDontShowAgainChange: jest.fn(),
-    refreshes: { val: 1, oldVal: 1, rawVal: 1, _oldVal: 0, _bindings: [], _listeners: [] },
+    refreshes: {
+      val: 1,
+      oldVal: 1,
+      rawVal: 1,
+      _oldVal: 0,
+      _bindings: [],
+      _listeners: [],
+    },
     showStepNumbers: true,
     autoPosition: true,
     positionPrecedence: ["bottom", "top", "right", "left"],
