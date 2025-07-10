@@ -4,7 +4,7 @@ import { tooltipTextClassName } from "../className";
 import { HintItem } from "../hintItem";
 import { TooltipContent } from "../../tooltip/tooltipContent";
 
-const { a, p, div } = dom.tags;
+const { a, div } = dom.tags;
 
 export type HintTooltipProps = Omit<
   TooltipProps,
@@ -56,7 +56,6 @@ export const HintTooltip = ({
           tooltipRenderAsHtml: renderAsHtml,
           className: tooltipTextClassName,
         }),
-        p(hintItem.hint || ""),
         closeButtonEnabled
           ? a(
               {

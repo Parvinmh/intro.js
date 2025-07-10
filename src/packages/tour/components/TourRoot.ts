@@ -88,7 +88,7 @@ export const TourRoot = ({ tour }: TourRootProps) => {
         bullets: tour.getOption("showBullets"),
 
         buttons: tour.getOption("showButtons"),
-        nextLabel: "Next",
+        nextLabel: tour.getOption("nextLabel"),
         onNextClick: async (e: any) => {
           if (!tour.isLastStep()) {
             await nextStep(tour);

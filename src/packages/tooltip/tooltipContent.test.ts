@@ -5,6 +5,7 @@ describe("TooltipContent", () => {
     const el = TooltipContent({
       text: "<strong>Bold Text</strong>",
       tooltipRenderAsHtml: false,
+      className: "tooltip-text",
     });
 
     expect(el.innerHTML).toBe("&lt;strong&gt;Bold Text&lt;/strong&gt;");
@@ -15,6 +16,7 @@ describe("TooltipContent", () => {
     const el = TooltipContent({
       text: "<strong>Bold Text</strong>",
       tooltipRenderAsHtml: true,
+      className: "tooltip-text",
     });
 
     expect(el.innerHTML).toBe("<strong>Bold Text</strong>");
