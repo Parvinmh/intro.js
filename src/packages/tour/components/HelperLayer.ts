@@ -1,7 +1,7 @@
 import { style } from "../../../util/style";
 import dom, { State } from "../../dom";
 import { helperLayerClassName } from "../classNames";
-import { setPositionRelativeToStep } from "../position";
+import { waitAndSetPositionRelativeToStep } from "../position";
 import { TourStep } from "../steps";
 
 const { div } = dom.tags;
@@ -64,7 +64,8 @@ export const HelperLayer = ({
     // set the new position if the step or refreshes change
     if (!step.val || refreshes.val === undefined) return;
 
-    setPositionRelativeToStep(
+    
+    waitAndSetPositionRelativeToStep(
       targetElement,
       helperLayer,
       step.val,
