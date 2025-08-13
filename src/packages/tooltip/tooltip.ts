@@ -425,6 +425,7 @@ export const Tooltip = (
       className: () =>
         `${tooltipClassName} introjs-${position.val} ${className || ""}`,
       role: "dialog",
+      ariaLabel: "tooltip",
       onclick: onClick ?? null,
     },
     [
