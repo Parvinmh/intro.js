@@ -41,7 +41,6 @@ const className = (hintItem: HintItem) => {
 
 const HintDot = () => div({ className: hintDotClassName });
 const HintPulse = () => div({ className: hintPulseClassName });
-
 export const HintIcon = ({
   index,
   hintItem,
@@ -54,6 +53,7 @@ export const HintIcon = ({
       className: () => className(hintItem),
       role: "button",
       tabindex: 0,
+      "aria-label": "Hint",
       onclick: onClick,
     },
     HintDot(),
@@ -72,3 +72,4 @@ export const HintIcon = ({
 
   return hintElement;
 };
+
