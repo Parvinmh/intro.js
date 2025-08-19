@@ -36,3 +36,11 @@ body {
 .marketing p + h4 {
   margin-top: 28px;
 }
+
+.muted {
+  color: black;
+}
+
+.nav-pills > li > a {
+  color: #0056b3;
+}

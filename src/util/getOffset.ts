@@ -30,7 +30,6 @@ export default function getOffset(
   const scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop;
   const scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft;
 
-
   relativeEl = relativeEl || docEl || body;
 
   const x = element.getBoundingClientRect();

@@ -72,4 +72,3 @@ export const HintIcon = ({
 
   return hintElement;
 };
-
