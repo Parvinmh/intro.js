@@ -18,6 +18,9 @@ import {
   waitMsForDerivations,
   waitMsForExitTransition,
 } from "../../util/sleep";
+import { axe, toHaveNoViolations } from "jest-axe";
+
+expect.extend(toHaveNoViolations);
 
 describe("Tour", () => {
   beforeEach(() => {
@@ -663,5 +666,25 @@ describe("Tour", () => {
       expect(tooltip?.querySelector("b")).toBeNull();
       expect(tooltip?.querySelector("i")).toBeNull();
     });
+  });
+  
+  test("should have no accessibility violations in tooltip", async () => {
+    // Arrange
+    const mockTour = getMockTour();
+    mockTour.setOptions({
+      steps: [
+        {
+          element: document.querySelector("#paragraph"),
+          intro: "Accessible tooltip test",
+        },
+      ],
+    });
+
+    // Act
+    await mockTour.start();
+
+    // Assert
+    const results = await axe(document.body);
+    expect(results).toHaveNoViolations();
   });
 });
