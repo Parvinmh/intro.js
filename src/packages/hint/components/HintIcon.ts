@@ -54,6 +54,7 @@ export const HintIcon = ({
       className: () => className(hintItem),
       role: "button",
       tabindex: 0,
+      "aria-label": hintItem?.hint || `Hint ${index + 1}`,
       onclick: onClick,
     },
     HintDot(),

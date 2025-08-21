@@ -10,7 +10,7 @@ import {
   waitFor,
 } from "../../../tests/jest/helper";
 import * as dontShowAgain from "./dontShowAgain";
-import { getMockPartialSteps, getMockTour } from "./mock";
+import { appendMockSteps, getMockPartialSteps, getMockTour } from "./mock";
 import { Tour } from "./tour";
 import { helperLayerClassName, overlayClassName } from "./classNames";
 import {
@@ -18,6 +18,10 @@ import {
   waitMsForDerivations,
   waitMsForExitTransition,
 } from "../../util/sleep";
+import { axe, toHaveNoViolations } from "jest-axe";
+
+expect.extend(toHaveNoViolations);
+jest.setTimeout(40000);
 
 describe("Tour", () => {
   beforeEach(() => {
@@ -663,5 +667,59 @@ describe("Tour", () => {
       expect(tooltip?.querySelector("b")).toBeNull();
       expect(tooltip?.querySelector("i")).toBeNull();
     });
+  });
+  test("should have no accessibility violations across all tour steps", async () => {
+    const container = document.createElement("main");
+    container.setAttribute("role", "main");
+    document.body.appendChild(container);
+
+    const textEl = document.createElement("p");
+    textEl.id = "paragraph";
+    textEl.textContent = "This is a sample paragraph for the tour.";
+
+    const imgEl = document.createElement("img");
+    imgEl.id = "sample-image";
+    imgEl.src = "https://via.placeholder.com/150";
+    imgEl.alt = "Sample placeholder image";
+
+    const videoEl = document.createElement("video");
+    videoEl.id = "sample-video";
+    videoEl.controls = true;
+    const source = document.createElement("source");
+    source.src = "https://www.w3schools.com/html/mov_bbb.mp4";
+    source.type = "video/mp4";
+    videoEl.appendChild(source);
+
+    const linkEl = document.createElement("a");
+    linkEl.id = "sample-link";
+    linkEl.href = "#";
+    linkEl.textContent = "Learn more";
+
+    container.appendChild(textEl);
+    container.appendChild(imgEl);
+    container.appendChild(videoEl);
+    container.appendChild(linkEl);
+
+    appendMockSteps(container);
+
+    const mockTour = getMockTour(container);
+    mockTour.setOptions({
+      steps: [
+        { element: "#paragraph", intro: "Accessible text content" },
+        { element: "#sample-image", intro: "Accessible image with alt text" },
+        { element: "#sample-video", intro: "Accessible video with controls" },
+        { element: "#sample-link", intro: "Accessible link element" },
+      ],
+    });
+
+    await mockTour.start();
+
+    for (let i = 0; i < mockTour.getSteps().length; i++) {
+      if (i < mockTour.getSteps().length - 1) {
+        const results = await axe(document.body);
+        expect(results).toHaveNoViolations();
+        await mockTour.nextStep();
+      }
+    }
   });
 });

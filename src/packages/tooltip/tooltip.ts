@@ -2,6 +2,7 @@ import getOffset, { Offset } from "../../util/getOffset";
 import getWindowSize from "../../util/getWindowSize";
 import dom, { ChildDom, State } from "../dom";
 import { arrowClassName, tooltipClassName } from "../tour/classNames";
+import { TourStep } from "../tour/steps";
 import { determineAutoPosition, TooltipPosition } from "./tooltipPosition";
 
 const { div } = dom.tags;
@@ -317,6 +318,7 @@ export type TooltipProps = {
 
   onClick?: (e: any) => void;
   className?: string;
+  step: TourStep;
 };
 
 export const Tooltip = (
@@ -333,7 +335,7 @@ export const Tooltip = (
     positionPrecedence = [],
     className,
     autoPosition = true,
-
+    step,
     onClick,
   }: TooltipProps,
   children?: ChildDom[]
@@ -425,6 +427,7 @@ export const Tooltip = (
       className: () =>
         `${tooltipClassName} introjs-${position.val} ${className || ""}`,
       role: "dialog",
+      "aria-label": step.title || step.intro,
       onclick: onClick ?? null,
     },
     [
