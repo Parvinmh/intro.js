@@ -1,5 +1,6 @@
 import { TooltipPosition } from "../../packages/tooltip";
 import { TourStep, ScrollTo } from "./steps";
+import { ThemeType } from "./theme";
 
 export interface TourOptions {
   steps: Partial<TourStep>[];
@@ -74,6 +75,8 @@ export interface TourOptions {
   progressBarAdditionalClass: string;
   /* Optional property to determine if content should be rendered as HTML */
   tooltipRenderAsHtml?: boolean;
+  /* Theme for the tour - light, dark, auto */
+  theme?: ThemeType;
 }
 
 export function getDefaultTourOptions(): TourOptions {
@@ -116,5 +119,6 @@ export function getDefaultTourOptions(): TourOptions {
     buttonClass: "introjs-button",
     progressBarAdditionalClass: "",
     tooltipRenderAsHtml: true,
+    theme: "auto",
   };
 }
