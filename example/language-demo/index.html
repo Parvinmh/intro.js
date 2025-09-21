@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Intro.js - Language Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Intro.js - Better introductions for websites and features with a step-by-step guide for your projects.">
+    <meta name="author" content="Afshin Mehrabani (@afshinmeh) in usabli.ca group">
+
+    <!-- styles -->
+    <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../assets/css/demo.css" rel="stylesheet">
+
+    <!-- Add IntroJs styles -->
+    <link href="../../dist/introjs.css" rel="stylesheet">
+
+    <link href="../assets/css/bootstrap-responsive.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .demo-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+        }
+        .language-buttons {
+            margin: 20px 0;
+        }
+        .language-buttons button {
+            margin: 5px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        .language-buttons button:hover {
+            background: #0056b3;
+        }
+        .current-language {
+            font-weight: bold;
+            color: #007bff;
+            margin: 10px 0;
+        }
+        .auto-detect {
+            background: #28a745 !important;
+        }
+        .auto-detect:hover {
+            background: #1e7e34 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 id="step1">
+            🌍 Intro.js Language Demo
+        </h1>
+        
+        <div class="current-language" id="currentLang">
+            Current Language: Auto-detect (Browser Language)
+        </div>
+
+        <div class="language-buttons">
+            <button onclick="startTourInEnglish()">Start Tour in English</button>
+            <button onclick="startTourInSpanish()">Start Tour in Spanish (Español)</button>
+            <button onclick="startTourInFrench()">Start Tour in French (Français)</button>
+            <button onclick="startTourInGerman()">Start Tour in German (Deutsch)</button>
+            <button onclick="startTourInPersian()">Start Tour in Persian (فارسی)</button>
+            <button onclick="startAutoDetectedTour()" class="auto-detect">Auto-detect Language</button>
+        </div>
+
+        <div class="demo-section" id="step2">
+            <h2>Demo Section 1</h2>
+            <p>This section demonstrates how Intro.js works with different languages.</p>
+            <p>The button texts (Next, Back, Done, Skip) will be automatically translated based on your language selection.</p>
+        </div>
+
+        <div class="demo-section" id="step3">
+            <h2>Demo Section 2</h2>
+            <p>All UI elements including:</p>
+            <ul>
+                <li>Next button</li>
+                <li>Previous button</li>
+                <li>Done button</li>
+                <li>Skip button</li>
+                <li>"Don't show again" checkbox</li>
+                <li>Step counter (e.g., "2 of 4")</li>
+            </ul>
+            <p>Are automatically localized!</p>
+        </div>
+
+        <div class="demo-section" id="step4">
+            <h2>Demo Section 3</h2>
+            <p>The language system is flexible and easy to extend. You can add new languages by creating new files in the <code>src/i18n/</code> directory.</p>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="../../dist/intro.js"></script>
+    <script type="text/javascript">
+        // Language data (inline for compatibility)
+        var enUS = {
+            buttons: { next: "Next", prev: "Back", skip: "Skip", done: "Done" },
+            messages: { dontShowAgainLabel: "Don't show this again", stepNumbersOfLabel: "of" }
+        };
+        var esES = {
+            buttons: { next: "Siguiente", prev: "Atrás", skip: "Saltar", done: "Hecho" },
+            messages: { dontShowAgainLabel: "No mostrar esto de nuevo", stepNumbersOfLabel: "de" }
+        };
+        var frFR = {
+            buttons: { next: "Suivant", prev: "Précédent", skip: "Passer", done: "Terminé" },
+            messages: { dontShowAgainLabel: "Ne plus afficher ceci", stepNumbersOfLabel: "de" }
+        };
+        var deDE = {
+            buttons: { next: "Weiter", prev: "Zurück", skip: "Überspringen", done: "Fertig" },
+            messages: { dontShowAgainLabel: "Nicht mehr anzeigen", stepNumbersOfLabel: "von" }
+        };
+        var faIR = {
+            buttons: { next: "بعدی", prev: "قبلی", skip: "رد کردن", done: "تمام" },
+            messages: { dontShowAgainLabel: "دوباره نشان نده", stepNumbersOfLabel: "از" }
+        };
+
+        // Language configuration
+        var languages = {
+            en_US: { lang: enUS, name: 'English' },
+            es_ES: { lang: esES, name: 'Spanish (Español)' },
+            fr_FR: { lang: frFR, name: 'French (Français)' },
+            de_DE: { lang: deDE, name: 'German (Deutsch)' },
+            fa_IR: { lang: faIR, name: 'Persian (فارسی)' }
+        };
+
+        // Get localized messages for each language
+        function getLocalizedMessages(langCode) {
+            var messages = {
+                en_US: {
+                    welcome: "Welcome to the <b>Intro.js</b> Language Demo!",
+                    step1: "This is the first demo section. Notice how the button texts change based on the selected <i>language</i>!",
+                    step2: 'This is the second demo section. You can see the <span style="color: red;">"Don\'t</span> <span style="color: green;">show</span> <span style="color: blue;">again"</span> option is also translated!',
+                    step3: '<span style="font-family: Tahoma">This is the final step! Click "Done" to finish the tour.</span>'
+                },
+                es_ES: {
+                    welcome: "¡Bienvenido a la <b>demostración</b> de idiomas de Intro.js!",
+                    step1: "Esta es la primera sección de demostración. ¡Observa cómo cambian los textos de los botones según el <i>idioma</i> seleccionado!",
+                    step2: 'Esta es la segunda sección de demostración. ¡Puedes ver que la opción <span style="color: red;">"No</span> <span style="color: green;">mostrar</span> <span style="color: blue;">de nuevo"</span> también está traducida!',
+                    step3: '<span style="font-family: Tahoma">¡Este es el paso final! Haz clic en "Hecho" para terminar el tour.</span>'
+                },
+                fr_FR: {
+                    welcome: "Bienvenue dans la <b>démonstration</b> linguistique d'Intro.js!",
+                    step1: "Ceci est la première section de démonstration. Remarquez comment les textes des boutons changent selon la <i>langue</i> sélectionnée!",
+                    step2: 'Ceci est la deuxième section de démonstration. Vous pouvez voir que l\'option <span style="color: red;">"Ne plus</span> <span style="color: green;">afficher</span> <span style="color: blue;">ceci"</span> est également traduite!',
+                    step3: '<span style="font-family: Tahoma">C\'est la dernière étape! Cliquez sur "Terminé" pour finir la visite.</span>'
+                },
+                de_DE: {
+                    welcome: "Willkommen zur <b>Sprach-Demo</b> von Intro.js!",
+                    step1: "Dies ist der erste Demo-Bereich. Beachten Sie, wie sich die Button-Texte je nach ausgewählter <i>Sprache</i> ändern!",
+                    step2: 'Dies ist der zweite Demo-Bereich. Sie können sehen, dass die Option <span style="color: red;">"Nicht mehr</span> <span style="color: green;">anzeigen</span> ebenfalls übersetzt ist!',
+                    step3: '<span style="font-family: Tahoma">Dies ist der letzte Schritt! Klicken Sie auf "Fertig", um die Tour zu beenden.</span>'
+                },
+                fa_IR: {
+                    welcome: "به <b>نمایش</b> زبان‌های Intro.js خوش آمدید!",
+                    step1: "این اولین بخش نمایشی است. توجه کنید که متن دکمه‌ها بر اساس <i>زبان</i> انتخابی تغییر می‌کند!",
+                    step2: 'این دومین بخش نمایشی است. می‌توانید ببینید که گزینه <span style="color: red;">"دوباره</span> <span style="color: green;">نشان</span> <span style="color: blue;">نده"</span> نیز ترجمه شده است!',
+                    step3: '<span style="font-family: Tahoma">این آخرین قدم است! روی "تمام" کلیک کنید تا تور را به پایان برسانید.</span>'
+                }
+            };
+            return messages[langCode] || messages.en_US;
+        }
+
+        // Start tour with specific language
+        function startTourWithLanguage(langCode) {
+            var config = languages[langCode];
+            var messages = getLocalizedMessages(langCode);
+            
+            // Update current language display
+            document.getElementById('currentLang').textContent = 'Current Language: ' + config.name;
+
+            // Create and start tour
+            var intro = introJs.tour();
+            intro.setOptions({
+                language: config.lang,
+                dontShowAgain: true,
+                showStepNumbers: true,
+                showProgress: true,
+                steps: [
+                    {
+                        title: '<p>Welcome!</p>',
+                        element: '#step1',
+                        intro: messages.welcome
+                    },
+                    {
+                        element: '#step2',
+                        intro: messages.step1,
+                        position: 'right'
+                    },
+                    {
+                        element: '#step3',
+                        intro: messages.step2,
+                        position: 'left'
+                    },
+                    {
+                        element: '#step4',
+                        intro: messages.step3,
+                        position: 'bottom'
+                    }
+                ]
+            });
+            intro.start();
+        }
+
+        // Individual language functions
+        function startTourInEnglish() {
+            startTourWithLanguage('en_US');
+        }
+
+        function startTourInSpanish() {
+            startTourWithLanguage('es_ES');
+        }
+
+        function startTourInFrench() {
+            startTourWithLanguage('fr_FR');
+        }
+
+        function startTourInGerman() {
+            startTourWithLanguage('de_DE');
+        }
+
+        function startTourInPersian() {
+            startTourWithLanguage('fa_IR');
+        }
+
+        // Start tour with auto-detected browser language
+        function startAutoDetectedTour() {
+            document.getElementById('currentLang').textContent = 'Current Language: Auto-detect (Browser Language)';
+            
+            var intro = introJs.tour();
+            intro.setOptions({
+                // No language specified = auto-detect browser language
+                dontShowAgain: true,
+                showStepNumbers: true,
+                showProgress: true
+            });
+            intro.start();
+        }
+
+        // Auto-start tour with browser language detection after page load
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                startAutoDetectedTour();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
