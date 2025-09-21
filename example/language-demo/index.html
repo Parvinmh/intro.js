@@ -190,7 +190,11 @@
             var intro = introJs.tour();
             intro.setOptions({
                 language: config.lang,
-                dontShowAgain: true,
+                nextLabel: config.lang.buttons.next,
+                prevLabel: config.lang.buttons.prev,
+                doneLabel: config.lang.buttons.done,
+                dontShowAgainLabel: config.lang.messages.dontShowAgainLabel,
+                stepNumbersOfLabel: config.lang.messages.stepNumbersOfLabel,
                 showStepNumbers: true,
                 showProgress: true,
                 steps: [
@@ -247,7 +251,6 @@
             var intro = introJs.tour();
             intro.setOptions({
                 // No language specified = auto-detect browser language
-                dontShowAgain: true,
                 showStepNumbers: true,
                 showProgress: true
             });
