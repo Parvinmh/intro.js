@@ -164,13 +164,13 @@ export class TriggerDetector {
    */
   private setupGlobalTriggers(): void {
     // Page visibility change for idle detection
-    DOMEvent.on(document, "visibilitychange", () => {
+    DOMEvent.on(document, "visibilitychange" as any, () => {
       if (document.hidden) {
         this.pauseIdleTimers();
       } else {
         this.resumeIdleTimers();
       }
-    }, false, false);
+    }, false);
   }
 
   /**
@@ -206,9 +206,9 @@ export class TriggerDetector {
       }
     };
 
-    DOMEvent.on(document, "click", handler, false, false);
+    DOMEvent.on(document, "click", handler, false);
     this.eventListeners.set(`${campaignId}-click`, () => {
-      DOMEvent.off(document, "click", handler, false, false);
+      DOMEvent.off(document, "click", handler, false);
     });
   }
 
@@ -227,9 +227,9 @@ export class TriggerDetector {
       }
     };
 
-    DOMEvent.on(document, "mouseover", handler, false, false);
+    DOMEvent.on(document, "mouseover" as any, handler, false);
     this.eventListeners.set(`${campaignId}-hover`, () => {
-      DOMEvent.off(document, "mouseover", handler, false, false);
+      DOMEvent.off(document, "mouseover" as any, handler, false);
     });
   }
 
@@ -254,8 +254,8 @@ export class TriggerDetector {
     const events = ["mousedown", "mousemove", "keypress", "scroll", "touchstart"];
     const handlers = events.map(event => {
       const handler = resetTimer;
-      DOMEvent.on(document, event as any, handler, true, false);
-      return () => DOMEvent.off(document, event as any, handler, true, false);
+      DOMEvent.on(document, event as any, handler, true);
+      return () => DOMEvent.off(document, event as any, handler, true);
     });
 
     resetTimer(); // Start the timer
@@ -285,9 +285,9 @@ export class TriggerDetector {
         }
       };
 
-      DOMEvent.on(window, "load", handler, false, false);
+      DOMEvent.on(window, "load" as any, handler, false);
       this.eventListeners.set(`${campaignId}-load`, () => {
-        DOMEvent.off(window, "load", handler, false, false);
+        DOMEvent.off(window, "load" as any, handler, false);
       });
     }
   }
@@ -307,14 +307,14 @@ export class TriggerDetector {
 
         if (visibilityRatio >= threshold) {
           callback(campaignId, trigger);
-          DOMEvent.off(window, "scroll", handler, false, false);
+          DOMEvent.off(window, "scroll", handler, false);
         }
       }
     };
 
-    DOMEvent.on(window, "scroll", handler, false, false);
+    DOMEvent.on(window, "scroll", handler, false);
     this.eventListeners.set(`${campaignId}-scroll`, () => {
-      DOMEvent.off(window, "scroll", handler, false, false);
+      DOMEvent.off(window, "scroll", handler, false);
     });
   }
 
@@ -344,9 +344,9 @@ export class TriggerDetector {
       }
     };
 
-    DOMEvent.on(document, "mouseleave", handler, false, false);
+    DOMEvent.on(document, "mouseleave" as any, handler, false);
     this.eventListeners.set(`${campaignId}-exit`, () => {
-      DOMEvent.off(document, "mouseleave", handler, false, false);
+      DOMEvent.off(document, "mouseleave" as any, handler, false);
     });
   }
 
@@ -363,9 +363,9 @@ export class TriggerDetector {
       }
     };
 
-    DOMEvent.on(document, "focus" as any, handler, true, false);
+    DOMEvent.on(document, "focus" as any, handler, true);
     this.eventListeners.set(`${campaignId}-form`, () => {
-      DOMEvent.off(document, "focus" as any, handler, true, false);
+      DOMEvent.off(document, "focus" as any, handler, true);
     });
   }
 
@@ -377,9 +377,9 @@ export class TriggerDetector {
       callback(campaignId, trigger);
     };
 
-    DOMEvent.on(document, trigger.eventName as any, handler, false, false);
+    DOMEvent.on(document, trigger.eventName as any, handler, false);
     this.eventListeners.set(`${campaignId}-custom`, () => {
-      DOMEvent.off(document, trigger.eventName as any, handler, false, false);
+      DOMEvent.off(document, trigger.eventName as any, handler, false);
     });
   }
 
@@ -488,13 +488,13 @@ export class TriggerDetector {
       
       if (scrollPercent >= trigger.percentage) {
         callback(campaignId, trigger);
-        DOMEvent.off(window, "scroll", handler, false, false);
+        DOMEvent.off(window, "scroll", handler, false);
       }
     };
 
-    DOMEvent.on(window, "scroll", handler, false, false);
+    DOMEvent.on(window, "scroll", handler, false);
     this.eventListeners.set(`${campaignId}-scroll-depth`, () => {
-      DOMEvent.off(window, "scroll", handler, false, false);
+      DOMEvent.off(window, "scroll", handler, false);
     });
   }
 
@@ -513,8 +513,8 @@ export class TriggerDetector {
 
         if (visibilityRatio >= threshold) {
           callback(campaignId, trigger);
-          DOMEvent.off(window, "scroll", handler, false, false);
-          DOMEvent.off(window, "resize", handler, false, false);
+          DOMEvent.off(window, "scroll", handler, false);
+          DOMEvent.off(window, "resize" as any, handler, false);
         }
       }
     };
@@ -525,12 +525,12 @@ export class TriggerDetector {
     checkVisibility();
 
     // Listen for scroll and resize
-    DOMEvent.on(window, "scroll", handler, false, false);
-    DOMEvent.on(window, "resize", handler, false, false);
+    DOMEvent.on(window, "scroll", handler, false);
+    DOMEvent.on(window, "resize" as any, handler, false);
     
     this.eventListeners.set(`${campaignId}-element-visible`, () => {
-      DOMEvent.off(window, "scroll", handler, false, false);
-      DOMEvent.off(window, "resize", handler, false, false);
+      DOMEvent.off(window, "scroll", handler, false);
+      DOMEvent.off(window, "resize" as any, handler, false);
     });
   }
 
