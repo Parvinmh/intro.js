@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "campaigns": [
+    {
+      "id": "idle-engagement",
+      "name": "Idle User Engagement",
+      "description": "Re-engage users who have been idle for a certain period",
+      "active": true,
+      "mode": "tour",
+      "triggers": [
+        {
+          "type": "idle_user",
+          "idleTime": 30000
+        }
+      ],
+      "frequency": {
+        "type": "session"
+      },
+      "tourOptions": {
+        "steps": [
+          {
+            "intro": "Still here? Let us show you some features you might have missed!",
+            "position": "floating"
+          },
+          {
+            "element": ".shortcuts-panel",
+            "intro": "Did you know you can use keyboard shortcuts? Press '?' to see all available shortcuts.",
+            "position": "right"
+          },
+          {
+            "element": ".recent-items",
+            "intro": "Your recently accessed items are always available here for quick access.",
+            "position": "left"
+          }
+        ],
+        "exitOnEsc": true,
+        "exitOnOverlayClick": true
+      }
+    }
+  ]
+}

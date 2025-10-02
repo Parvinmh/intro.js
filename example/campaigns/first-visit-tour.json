@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "campaigns": [
+    {
+      "id": "welcome-tour",
+      "name": "Welcome Tour - First Visit",
+      "description": "A welcome tour that appears when a user visits the site for the first time",
+      "active": true,
+      "mode": "tour",
+      "triggers": [
+        {
+          "type": "first_visit",
+          "delay": 1000
+        }
+      ],
+      "frequency": {
+        "type": "once"
+      },
+      "tourOptions": {
+        "steps": [
+          {
+            "element": "#header",
+            "intro": "Welcome to our application! Let's take a quick tour.",
+            "position": "bottom"
+          },
+          {
+            "element": "#navigation",
+            "intro": "This is the main navigation menu. You can access all features from here.",
+            "position": "right"
+          },
+          {
+            "element": "#content",
+            "intro": "Your main content will appear here.",
+            "position": "top"
+          },
+          {
+            "element": "#footer",
+            "intro": "That's it! Enjoy using our application.",
+            "position": "top"
+          }
+        ],
+        "showProgress": true,
+        "showBullets": true,
+        "exitOnOverlayClick": false
+      }
+    }
+  ]
+}
