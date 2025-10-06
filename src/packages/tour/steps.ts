@@ -29,6 +29,20 @@ export type TourStep = {
   disableInteraction?: boolean;
 };
 
+async function runBeforeChange(tour: Tour, step?: any) {
+  const cb = tour.callback("beforeChange");
+  if (!cb) return true;
+
+  const result = cb.call(
+    tour,
+    step && (step.element as HTMLElement),
+    tour.getCurrentStep(),
+    tour.getDirection()
+  );
+
+  return await Promise.resolve(result);
+}
+
 /**
  * Go to next step on intro
  *
@@ -44,16 +58,7 @@ export async function nextStep(tour: Tour) {
   }
 
   const nextStep = tour.getStep(currentStep);
-  let continueStep: boolean | undefined = true;
-
-  continueStep = await tour
-    .callback("beforeChange")
-    ?.call(
-      tour,
-      nextStep && (nextStep.element as HTMLElement),
-      tour.getCurrentStep(),
-      tour.getDirection()
-    );
+  const continueStep = await runBeforeChange(tour, nextStep);
 
   // if `onBeforeChange` returned `false`, stop displaying the element
   if (continueStep === false) {

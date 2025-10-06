@@ -134,6 +134,47 @@ describe("steps", () => {
       expect(onBeforeChangeMock).toHaveBeenCalledBefore(showElementMock);
     });
 
+    test("should not proceed when onBeforeChange promise resolves to false", async () => {
+      // Arrange
+      const mockTour = getMockTour();
+      mockTour.setSteps(getMockSteps());
+      const showElementMock = jest.fn();
+      (showElement as jest.Mock).mockImplementation(showElementMock);
+
+      const onBeforeChangeMock = jest.fn().mockResolvedValue(false);
+      mockTour.onBeforeChange(onBeforeChangeMock);
+
+      // Act
+      await nextStep(mockTour);
+
+      // Assert
+      expect(onBeforeChangeMock).toHaveBeenCalledTimes(1);
+      expect(showElementMock).not.toHaveBeenCalled();
+      // Should not move forward
+      expect(mockTour.getCurrentStep()).toBe(0);
+    });
+
+    test("should proceed when onBeforeChange promise resolves to true", async () => {
+      const mockTour = getMockTour();
+      const showElementMock = jest.fn();
+      (showElement as jest.Mock).mockImplementation(showElementMock);
+      mockTour.setSteps(getMockSteps());
+      mockTour.setCurrentStep(0);
+
+      const onBeforeChangeMock = jest.fn();
+
+      mockTour.onBeforeChange(async () => {
+        onBeforeChangeMock();
+        return Promise.resolve(true);
+      });
+
+      await nextStep(mockTour);
+
+      expect(onBeforeChangeMock).toHaveBeenCalledTimes(1);
+      expect(showElementMock).toHaveBeenCalledTimes(1);
+      expect(mockTour.getCurrentStep()).toBe(1);
+    });
+
     test("should call the complete callback", async () => {
       // Arrange
       const mockTour = getMockTour();
