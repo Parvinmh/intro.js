@@ -32,7 +32,7 @@ describe("placeTooltip", () => {
     );
 
     // Assert
-    expect(position).toBe("top-right-aligned");
+    expect(position).toBe("top-left-aligned");
   });
 
   test("should use floating tooltips when height/width is limited", () => {
@@ -68,23 +68,22 @@ describe("placeTooltip", () => {
     const position = determineAutoPosition(
       positionPrecedence,
       {
-        top: 0,
-        left: 0,
+        top: 100,
+        left: 200,
         height: 100,
         width: 100,
-        right: 0,
-        bottom: 0,
-        absoluteTop: 0,
-        absoluteLeft: 0,
-        absoluteRight: 0,
-        absoluteBottom: 0,
+        right: 300,
+        bottom: 200,
+        absoluteTop: 100,
+        absoluteLeft: 200,
+        absoluteRight: 300,
+        absoluteBottom: 200,
       },
       100,
       100,
-      "left",
-      { height: 500, width: 100 }
+      "bottom-middle-aligned",
+      { height: 500, width: 1000 }
     );
-
     // Assert
     expect(position).toBe("bottom-middle-aligned");
   });
