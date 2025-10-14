@@ -331,7 +331,6 @@ const Buttons = ({
 };
 
 export const Header = ({
-  text,
   title,
   skipLabel,
   renderAsHtml,
