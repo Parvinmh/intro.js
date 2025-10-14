@@ -713,7 +713,6 @@ describe("Tour", () => {
     });
 
     await mockTour.start();
-
     for (let i = 0; i < mockTour.getSteps().length; i++) {
       if (i < mockTour.getSteps().length - 1) {
         const results = await axe(document.body);
@@ -721,5 +720,18 @@ describe("Tour", () => {
         await mockTour.nextStep();
       }
     }
+  });
+
+  test("should keep default options when only one option is set", async () => {
+    const tour = new Tour();
+
+    // Arrange & Act
+    tour.setOptions({
+      tooltipRenderAsHtml: true,
+    });
+
+    await tour.start();
+    expect(tour.getOption("showStepNumbers")).toBe(false);
+    expect(tour.getOption("doneLabel")).toBe("Done");
   });
 });
