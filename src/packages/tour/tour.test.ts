@@ -679,7 +679,7 @@ describe("Tour", () => {
 
     const imgEl = document.createElement("img");
     imgEl.id = "sample-image";
-    imgEl.src = "https://via.placeholder.com/150";
+    imgEl.src = "https://placehold.co/600x400";
     imgEl.alt = "Sample placeholder image";
 
     const videoEl = document.createElement("video");
@@ -705,10 +705,10 @@ describe("Tour", () => {
     const mockTour = getMockTour(container);
     mockTour.setOptions({
       steps: [
-        { element: "#paragraph", intro: "Accessible text content" },
-        { element: "#sample-image", intro: "Accessible image with alt text" },
-        { element: "#sample-video", intro: "Accessible video with controls" },
-        { element: "#sample-link", intro: "Accessible link element" },
+        { element: "#paragraph", title: "Text Content", intro: "Accessible text content" },
+        { element: "#sample-image", title: "Image Element", intro: "Accessible image with alt text" },
+        { element: "#sample-video", title: "Video Element", intro: "Accessible video with controls" },
+        { element: "#sample-link", title: "Link Element", intro: "Accessible link element" },
       ],
     });
 

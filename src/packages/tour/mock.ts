@@ -23,6 +23,7 @@ export const appendMockSteps = (targetElement: HTMLElement = document.body) => {
     "Mock element second to last"
   );
   mockElementThree.setAttribute(dataStepAttribute, "10");
+  mockElementThree.setAttribute("title", "text");
 
   const mockElementFour = a();
   mockElementFour.setAttribute(dataIntroAttribute, "Mock element last");
