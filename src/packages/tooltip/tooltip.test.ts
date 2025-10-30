@@ -47,7 +47,7 @@ describe("Tour Tooltip", () => {
     for (let i = 0; i < mockTour.getSteps().length; i++) {
       const step = mockTour.getStep(i);
 
-      const tooltip = Tooltip({
+      const tooltip = await Tooltip({
         className: "custom-tooltip",
         element: step.element as HTMLElement,
         position: step.position,

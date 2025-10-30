@@ -320,7 +320,7 @@ export type TooltipProps = {
   text: string;
 };
 
-export const Tooltip = (
+export const Tooltip = async (
   {
     position: initialPosition,
     element,
@@ -338,7 +338,7 @@ export const Tooltip = (
     onClick,
   }: TooltipProps,
   children?: ChildDom[]
-) => {
+): Promise<HTMLElement> => {
   const top = dom.state<string>("auto");
   const right = dom.state<string>("auto");
   const bottom = dom.state<string>("auto");
@@ -438,10 +438,13 @@ export const Tooltip = (
     ]
   );
 
-  // apply the transition effect
-  setTimeout(() => {
-    opacity.val = 1;
-  }, transitionDuration);
+  // Apply fade-in transition asynchronously
+  await new Promise<void>((resolve) => {
+    setTimeout(() => {
+      opacity.val = 1;
+      resolve();
+    }, transitionDuration);
+  });
 
   setTimeout(() => {
     // set the correct height and width of the tooltip after it has been rendered

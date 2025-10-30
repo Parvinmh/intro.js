@@ -1,8 +1,8 @@
 import { Header } from "./TourTooltip";
 
 describe("Header", () => {
-  it("renders plain text title when renderAsHtml is false", () => {
-    const el = Header({
+  it("renders plain text title when renderAsHtml is false", async () => {
+    const el = await Header({
       title: "<strong>Bold Text</strong>",
       skipLabel: "Skip",
       renderAsHtml: false,
@@ -15,8 +15,8 @@ describe("Header", () => {
     expect(h1.querySelector("strong")).toBeNull();
   });
 
-  it("renders HTML title when renderAsHtml is true", () => {
-    const el = Header({
+  it("renders HTML title when renderAsHtml is true", async () => {
+    const el = await Header({
       title: "<strong>Bold Text</strong>",
       skipLabel: "Skip",
       renderAsHtml: true,

@@ -270,7 +270,7 @@ const PrevButton = ({
   });
 };
 
-const Buttons = ({
+const Buttons = async ({
   steps,
   currentStep,
 
@@ -330,7 +330,7 @@ const Buttons = ({
   );
 };
 
-export const Header = ({
+export const Header = async ({
   title,
   skipLabel,
   renderAsHtml,
@@ -427,7 +427,7 @@ export type TourTooltipProps = Omit<
   onDontShowAgainChange: (checked: boolean) => void;
 };
 
-export const TourTooltip = ({
+export const TourTooltip = async ({
   step,
   currentStep,
   steps,
@@ -463,13 +463,13 @@ export const TourTooltip = ({
   dontShowAgainLabel,
   renderAsHtml,
   ...props
-}: TourTooltipProps) => {
+}: TourTooltipProps): Promise<HTMLElement> => {
   const children = [];
   const title = step.title;
   const text = step.intro;
   const position = step.position;
 
-  children.push(Header({ title, skipLabel, renderAsHtml, onSkipClick }));
+  children.push(await Header({ title, skipLabel, renderAsHtml, onSkipClick }));
 
   children.push(
     TooltipContent({
@@ -499,7 +499,7 @@ export const TourTooltip = ({
 
   if (buttons) {
     children.push(
-      Buttons({
+      await Buttons({
         steps,
         currentStep,
 
@@ -518,7 +518,7 @@ export const TourTooltip = ({
     );
   }
 
-  const tooltip = Tooltip(
+  const tooltip = await Tooltip(
     {
       ...props,
       element: step.element as HTMLElement,
