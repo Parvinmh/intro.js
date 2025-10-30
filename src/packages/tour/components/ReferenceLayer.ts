@@ -10,16 +10,18 @@ export type ReferenceLayerProps = TourTooltipProps & {
   helperElementPadding: number;
 };
 
-export const ReferenceLayer = ({
+export const ReferenceLayer = async ({
   targetElement,
   helperElementPadding,
   ...props
-}: ReferenceLayerProps) => {
+}: ReferenceLayerProps): Promise<HTMLElement | null> => {
+  // Wait for tooltip to be ready (async)
+  const tooltip = await TourTooltip(props);
+  if (!tooltip) return null;
+
   const referenceLayer = div(
-    {
-      className: tooltipReferenceLayerClassName,
-    },
-    TourTooltip(props)
+    { className: tooltipReferenceLayerClassName },
+    tooltip
   );
 
   dom.derive(() => {
