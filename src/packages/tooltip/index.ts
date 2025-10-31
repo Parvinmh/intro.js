@@ -1,1 +1,1 @@
-export { TooltipPosition } from "./tooltipPosition";
+export { TooltipPosition, TooltipBasePosition } from "./tooltipPosition";

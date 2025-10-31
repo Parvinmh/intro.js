@@ -15,65 +15,85 @@ export type Offset = {
 };
 
 /**
- * Get an element position on the page relative to another element (or body) including scroll offset
- * Thanks to `meouw`: http://stackoverflow.com/a/442474/375966
- *
- * @api private
- * @returns Element's position info
+ * Returns all scrollable parents up to document root
+ */
+function getScrollParents(el: HTMLElement): HTMLElement[] {
+  const parents: HTMLElement[] = [];
+  let parent = el.parentElement;
+  while (parent) {
+    const style = getComputedStyle(parent);
+    if (
+      /auto|scroll/.test(style.overflow + style.overflowY + style.overflowX)
+    ) {
+      parents.push(parent);
+    }
+    parent = parent.parentElement;
+  }
+  return parents;
+}
+
+/**
+ * Returns element offset relative to a container or document.
+ * Handles scrollable containers, fixed/relative positioning and nested scrolls.
  */
 export default function getOffset(
   element: HTMLElement,
   relativeEl?: HTMLElement
 ): Offset {
-  const body = document.body;
   const docEl = document.documentElement;
-  const scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop;
-  const scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft;
-
+  const body = document.body;
   relativeEl = relativeEl || docEl || body;
 
-  const x = element.getBoundingClientRect();
-  const xr = relativeEl.getBoundingClientRect();
-  const relativeElPosition = getPropValue(relativeEl, "position");
+  const rect = element.getBoundingClientRect();
+  const relRect = relativeEl.getBoundingClientRect();
+  const relPos = getPropValue(relativeEl, "position");
 
-  let obj: { top: number; left: number } = { top: 0, left: 0 };
+  // Default positions
+  let top = 0;
+  let left = 0;
 
-  if (
-    (relativeEl.tagName.toLowerCase() !== "body" &&
-      relativeElPosition === "relative") ||
-    relativeElPosition === "sticky"
+  // Case 1: Fixed elements → use viewport-relative rect directly
+  if (isFixed(element)) {
+    top = rect.top;
+    left = rect.left;
+  }
+
+  // Case 2: Relative or sticky container → position inside the container
+  else if (
+    relativeEl.tagName.toLowerCase() !== "body" &&
+    (relPos === "relative" || relPos === "sticky")
   ) {
-    // when the container of our target element is _not_ body and has either "relative" or "sticky" position, we should not
-    // consider the scroll position but we need to include the relative x/y of the container element
-    obj = Object.assign(obj, {
-      top: x.top - xr.top,
-      left: x.left - xr.left,
-    });
-  } else {
-    if (isFixed(element)) {
-      obj = Object.assign(obj, {
-        top: x.top,
-        left: x.left,
-      });
-    } else {
-      obj = Object.assign(obj, {
-        top: x.top + scrollTop,
-        left: x.left + scrollLeft,
-      });
+    top = rect.top - relRect.top;
+    left = rect.left - relRect.left;
+
+    // Add scroll offsets from parents until relativeEl
+    const scrollParents = getScrollParents(element);
+    for (const sp of scrollParents) {
+      top += sp.scrollTop;
+      left += sp.scrollLeft;
+      if (sp === relativeEl) break;
     }
   }
 
+  // Case 3: Normal document flow
+  else {
+    const scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop;
+    const scrollLeft =
+      window.pageXOffset || docEl.scrollLeft || body.scrollLeft;
+    top = rect.top + scrollTop;
+    left = rect.left + scrollLeft;
+  }
+
   return {
-    ...obj,
-    ...{
-      width: x.width,
-      height: x.height,
-      bottom: obj.top + x.height,
-      right: obj.left + x.width,
-      absoluteTop: x.top,
-      absoluteLeft: x.left,
-      absoluteBottom: x.bottom,
-      absoluteRight: x.right,
-    },
+    top,
+    left,
+    width: rect.width,
+    height: rect.height,
+    bottom: top + rect.height,
+    right: left + rect.width,
+    absoluteTop: rect.top + window.pageYOffset,
+    absoluteLeft: rect.left + window.pageXOffset,
+    absoluteBottom: rect.bottom + window.pageYOffset,
+    absoluteRight: rect.right + window.pageXOffset,
   };
 }

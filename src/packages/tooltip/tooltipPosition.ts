@@ -1,162 +1,144 @@
-import removeEntry from "../../util/removeEntry";
 import { Offset } from "../../util/getOffset";
 
-export type TooltipPosition =
+export type TooltipBasePosition =
   | "floating"
   | "top"
   | "bottom"
   | "left"
-  | "right"
-  | "top-right-aligned"
+  | "right";
+export type TooltipAlignment =
   | "top-left-aligned"
   | "top-middle-aligned"
-  | "bottom-right-aligned"
+  | "top-right-aligned"
   | "bottom-left-aligned"
-  | "bottom-middle-aligned";
+  | "bottom-middle-aligned"
+  | "bottom-right-aligned";
+export type TooltipPosition = TooltipBasePosition | TooltipAlignment;
 
 /**
- * auto-determine alignment
+ * Get the center from a given offset
+ */
+function getCenterFromOffset(offset: Offset) {
+  return {
+    centerX: offset.left + offset.width / 2,
+    centerY: offset.top + offset.height / 2,
+  };
+}
+
+/**
+ * Determines top/bottom alignment
  */
 function determineAutoAlignment(
-  offsetLeft: number,
+  centerX: number,
   tooltipWidth: number,
-  windowWidth: number,
-  desiredAlignment: TooltipPosition[]
-): TooltipPosition | null {
-  const halfTooltipWidth = tooltipWidth / 2;
-  const winWidth = Math.min(windowWidth, window.screen.width);
+  viewportWidth: number,
+  desiredAlignments: TooltipAlignment[],
+  requestedAlignment?: TooltipAlignment
+): TooltipAlignment | null {
+  const halfWidth = tooltipWidth / 2;
+  const margin = 8;
 
-  // valid left must be at least a tooltipWidth
-  // away from right side
-  if (winWidth - offsetLeft < tooltipWidth) {
-    removeEntry<TooltipPosition>(desiredAlignment, "top-left-aligned");
-    removeEntry<TooltipPosition>(desiredAlignment, "bottom-left-aligned");
+  if (requestedAlignment && desiredAlignments.includes(requestedAlignment)) {
+    return requestedAlignment;
   }
 
-  // valid middle must be at least half
-  // width away from both sides
-  if (
-    offsetLeft < halfTooltipWidth ||
-    winWidth - offsetLeft < halfTooltipWidth
-  ) {
-    removeEntry<TooltipPosition>(desiredAlignment, "top-middle-aligned");
-    removeEntry<TooltipPosition>(desiredAlignment, "bottom-middle-aligned");
+  const spaceLeft = centerX;
+  const spaceRight = viewportWidth - centerX;
+
+  const canMiddle =
+    spaceLeft >= halfWidth + margin && spaceRight >= halfWidth + margin;
+  const canLeft = spaceLeft >= tooltipWidth / 2 + margin;
+  const canRight = spaceRight >= tooltipWidth / 2 + margin;
+
+  for (const a of desiredAlignments) {
+    if (a.endsWith("middle-aligned") && canMiddle) return a;
+    if (a.endsWith("left-aligned") && canLeft) return a;
+    if (a.endsWith("right-aligned") && canRight) return a;
   }
 
-  // valid right must be at least a tooltipWidth
-  // width away from left side
-  if (offsetLeft < tooltipWidth) {
-    removeEntry<TooltipPosition>(desiredAlignment, "top-right-aligned");
-    removeEntry<TooltipPosition>(desiredAlignment, "bottom-right-aligned");
-  }
-
-  if (desiredAlignment.length) {
-    return desiredAlignment[0];
-  }
-
+  if (canMiddle)
+    return desiredAlignments.find((d) => d.endsWith("middle-aligned"))!;
+  if (canRight)
+    return desiredAlignments.find((d) => d.endsWith("right-aligned"))!;
+  if (canLeft)
+    return desiredAlignments.find((d) => d.endsWith("left-aligned"))!;
   return null;
 }
 
 /**
- * Determines the position of the tooltip based on the position precedence and availability
- * of screen space.
+ * Determines the best tooltip position and alignment
  */
 export function determineAutoPosition(
-  positionPrecedence: TooltipPosition[],
-  targetOffset: Offset,
+  positionPrecedence: TooltipBasePosition[],
+  target: Offset,
   tooltipWidth: number,
   tooltipHeight: number,
   desiredTooltipPosition: TooltipPosition,
-  windowSize: { width: number; height: number }
+  containerOrWindow?: HTMLElement | { width: number; height: number }
 ): TooltipPosition {
-  // Take a clone of position precedence. These will be the available
-  const possiblePositions = positionPrecedence.slice();
+  const viewportWidth =
+    "clientWidth" in (containerOrWindow ?? document.documentElement)
+      ? (containerOrWindow as HTMLElement).clientWidth
+      : (containerOrWindow as { width: number; height: number }).width;
+  const viewportHeight =
+    "clientHeight" in (containerOrWindow ?? document.documentElement)
+      ? (containerOrWindow as HTMLElement).clientHeight
+      : (containerOrWindow as { width: number; height: number }).height;
+  const tW = tooltipWidth + 12;
+  const tH = tooltipHeight + 12;
 
-  // Add some padding to the tooltip height and width for better positioning
-  tooltipHeight = tooltipHeight + 10;
-  tooltipWidth = tooltipWidth + 20;
+  let possible = positionPrecedence.slice();
 
-  // If we check all the possible areas, and there are no valid places for the tooltip, the element
-  // must take up most of the screen real estate. Show the tooltip floating in the middle of the screen.
-  let calculatedPosition: TooltipPosition = "floating";
+  if (target.bottom + tH > viewportHeight)
+    possible = possible.filter((p) => p !== "bottom");
+  if (target.top - tH < 0) possible = possible.filter((p) => p !== "top");
+  if (target.right + tW > viewportWidth)
+    possible = possible.filter((p) => p !== "right");
+  if (target.left - tW < 0) possible = possible.filter((p) => p !== "left");
 
-  /*
-   * auto determine position
-   */
+  if (!possible.length) return "floating";
 
-  // Check for space below
-  if (targetOffset.absoluteBottom + tooltipHeight > windowSize.height) {
-    removeEntry<TooltipPosition>(possiblePositions, "bottom");
+  let baseRequested: TooltipBasePosition | undefined;
+  let requestedAlignment: TooltipAlignment | undefined;
+
+  if (desiredTooltipPosition.includes("-")) {
+    const [base, align, side] = desiredTooltipPosition.split("-");
+    baseRequested = base as TooltipBasePosition;
+    if (align && side)
+      requestedAlignment = `${base}-${align}-${side}` as TooltipAlignment;
+  } else {
+    baseRequested = desiredTooltipPosition as TooltipBasePosition;
   }
 
-  // Check for space above
-  if (targetOffset.absoluteTop - tooltipHeight < 0) {
-    removeEntry<TooltipPosition>(possiblePositions, "top");
-  }
+  const chosenBase: TooltipBasePosition =
+    baseRequested && possible.includes(baseRequested)
+      ? baseRequested
+      : possible[0];
 
-  // Check for space to the right
-  if (targetOffset.absoluteRight + tooltipWidth > windowSize.width) {
-    removeEntry<TooltipPosition>(possiblePositions, "right");
-  }
+  if (chosenBase === "top" || chosenBase === "bottom") {
+    const desiredAlignments: TooltipAlignment[] =
+      chosenBase === "top"
+        ? ["top-left-aligned", "top-middle-aligned", "top-right-aligned"]
+        : [
+            "bottom-left-aligned",
+            "bottom-middle-aligned",
+            "bottom-right-aligned",
+          ];
 
-  // Check for space to the left
-  if (targetOffset.absoluteLeft - tooltipWidth < 0) {
-    removeEntry<TooltipPosition>(possiblePositions, "left");
-  }
+    const { centerX } = getCenterFromOffset(target);
 
-  // strip alignment from position
-  if (desiredTooltipPosition) {
-    // ex: "bottom-right-aligned"
-    // should return 'bottom'
-    desiredTooltipPosition = desiredTooltipPosition.split(
-      "-"
-    )[0] as TooltipPosition;
-  }
-
-  if (possiblePositions.length) {
-    // Pick the first valid position, in order
-    calculatedPosition = possiblePositions[0];
-
-    if (possiblePositions.includes(desiredTooltipPosition)) {
-      // If the requested position is in the list, choose that
-      calculatedPosition = desiredTooltipPosition;
-    }
-  }
-
-  // only "top" and "bottom" positions have optional alignments
-  if (calculatedPosition === "top" || calculatedPosition === "bottom") {
-    let defaultAlignment: TooltipPosition;
-    let desiredAlignment: TooltipPosition[] = [];
-
-    if (calculatedPosition === "top") {
-      // if screen width is too small
-      // for ANY alignment, middle is
-      // probably the best for visibility
-      defaultAlignment = "top-middle-aligned";
-
-      desiredAlignment = [
-        "top-left-aligned",
-        "top-middle-aligned",
-        "top-right-aligned",
-      ];
-    } else {
-      defaultAlignment = "bottom-middle-aligned";
-
-      desiredAlignment = [
-        "bottom-left-aligned",
-        "bottom-middle-aligned",
-        "bottom-right-aligned",
-      ];
-    }
-
-    calculatedPosition =
+    const alignment =
       determineAutoAlignment(
-        targetOffset.absoluteLeft,
-        tooltipWidth,
-        windowSize.width,
-        desiredAlignment
-      ) || defaultAlignment;
+        centerX,
+        tW,
+        viewportWidth,
+        desiredAlignments,
+        requestedAlignment
+      ) ??
+      (chosenBase === "top" ? "top-middle-aligned" : "bottom-middle-aligned");
+
+    return alignment;
   }
 
-  return calculatedPosition;
+  return chosenBase;
 }

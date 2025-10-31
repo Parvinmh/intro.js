@@ -1,4 +1,4 @@
-import { TooltipPosition } from "../../packages/tooltip";
+import { TooltipPosition, TooltipBasePosition } from "../../packages/tooltip";
 import { TourStep, ScrollTo } from "./steps";
 import { Translator, LanguageCode } from "../../i18n/language";
 
@@ -58,7 +58,7 @@ export interface TourOptions {
   /* To determine the tooltip position automatically based on the window.width/height */
   autoPosition: boolean;
   /* Precedence of positions, when auto is enabled */
-  positionPrecedence: TooltipPosition[];
+  positionPrecedence: TooltipBasePosition[];
   /* Disable an interaction with element? */
   disableInteraction: boolean;
   /* To display the "Don't show again" checkbox in the tour */

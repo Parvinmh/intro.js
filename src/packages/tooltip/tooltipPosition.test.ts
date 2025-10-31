@@ -1,91 +1,89 @@
-import { determineAutoPosition, TooltipPosition } from "./tooltipPosition";
+import { determineAutoPosition } from "../tooltip/tooltipPosition";
+import type { Offset } from "../../util/getOffset";
 
-const positionPrecedence: TooltipPosition[] = [
-  "bottom",
-  "top",
-  "right",
-  "left",
-];
+const mockViewport = { width: 1000, height: 800 };
 
-describe("placeTooltip", () => {
-  test("should automatically place the tooltip position when there is enough space", () => {
-    // Arrange
-    // Act
-    const position = determineAutoPosition(
-      positionPrecedence,
-      {
-        top: 200,
-        left: 200,
-        height: 100,
-        width: 100,
-        right: 300,
-        bottom: 300,
-        absoluteTop: 200,
-        absoluteLeft: 200,
-        absoluteRight: 300,
-        absoluteBottom: 300,
-      },
+const makeOffset = (
+  left: number,
+  top: number,
+  width = 100,
+  height = 50
+): Offset => ({
+  top,
+  left,
+  width,
+  height,
+  bottom: top + height,
+  right: left + width,
+  absoluteTop: top,
+  absoluteLeft: left,
+  absoluteBottom: top + height,
+  absoluteRight: left + width,
+});
+
+describe("determineAutoPosition", () => {
+  it("should return 'bottom-left-aligned' when there is enough space below", () => {
+    const target = makeOffset(400, 200);
+    const pos = determineAutoPosition(
+      ["bottom", "top"],
+      target,
+      200,
       100,
-      100,
-      "top",
-      { height: 1000, width: 1000 }
+      "bottom",
+      mockViewport
     );
-
-    // Assert
-    expect(position).toBe("top-right-aligned");
+    expect(pos).toBe("bottom-left-aligned");
   });
 
-  test("should use floating tooltips when height/width is limited", () => {
-    // Arrange
-    // Act
-    const position = determineAutoPosition(
-      positionPrecedence,
-      {
-        top: 0,
-        left: 0,
-        height: 100,
-        width: 100,
-        right: 0,
-        bottom: 0,
-        absoluteTop: 0,
-        absoluteLeft: 0,
-        absoluteRight: 0,
-        absoluteBottom: 0,
-      },
+  it("should return 'top-left-aligned' when there is no space below", () => {
+    const target = makeOffset(400, 750);
+    const pos = determineAutoPosition(
+      ["bottom", "top"],
+      target,
+      200,
       100,
-      100,
-      "top",
-      { height: 100, width: 100 }
+      "bottom",
+      mockViewport
     );
-
-    // Assert
-    expect(position).toBe("floating");
+    expect(pos).toBe("top-left-aligned");
   });
 
-  test("should use bottom middle aligned when there is enough vertical space", () => {
-    // Arrange
-    // Act
-    const position = determineAutoPosition(
-      positionPrecedence,
-      {
-        top: 0,
-        left: 0,
-        height: 100,
-        width: 100,
-        right: 0,
-        bottom: 0,
-        absoluteTop: 0,
-        absoluteLeft: 0,
-        absoluteRight: 0,
-        absoluteBottom: 0,
-      },
+  it("should switch to 'left' when right side has no space", () => {
+    const target = makeOffset(950, 400);
+    const pos = determineAutoPosition(
+      ["right", "left", "top", "bottom"],
+      target,
       100,
-      100,
-      "left",
-      { height: 500, width: 100 }
+      50,
+      "right",
+      mockViewport
     );
+    expect(pos).toBe("left");
+  });
 
-    // Assert
-    expect(position).toBe("bottom-middle-aligned");
+  it("should fall back to 'floating' when no space anywhere", () => {
+    const target = makeOffset(0, 0, 1200, 900);
+    const pos = determineAutoPosition(
+      ["top", "bottom", "left", "right"],
+      target,
+      200,
+      100,
+      "bottom",
+      mockViewport
+    );
+    expect(pos).toBe("floating");
+  });
+
+  it("should respect desired alignment if possible", () => {
+    const target = makeOffset(400, 200);
+    const pos = determineAutoPosition(
+      ["bottom", "top"],
+      target,
+      200,
+      100,
+      "bottom-right-aligned",
+      mockViewport
+    );
+    expect(pos).toBe("bottom-right-aligned");
   });
 });
