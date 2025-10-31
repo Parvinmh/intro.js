@@ -2,7 +2,11 @@ import getOffset, { Offset } from "../../util/getOffset";
 import getWindowSize from "../../util/getWindowSize";
 import dom, { ChildDom, State } from "../dom";
 import { arrowClassName, tooltipClassName } from "../tour/classNames";
-import { determineAutoPosition, TooltipPosition } from "./tooltipPosition";
+import {
+  determineAutoPosition,
+  TooltipPosition,
+  TooltipBasePosition,
+} from "./tooltipPosition";
 
 const { div } = dom.tags;
 
@@ -313,7 +317,7 @@ export type TooltipProps = {
 
   // auto-alignment properties
   autoPosition: boolean;
-  positionPrecedence: TooltipPosition[];
+  positionPrecedence: TooltipBasePosition[];
 
   onClick?: (e: any) => void;
   className?: string;

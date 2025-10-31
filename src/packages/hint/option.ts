@@ -1,4 +1,4 @@
-import { TooltipPosition } from "../../packages/tooltip";
+import { TooltipBasePosition } from "../../packages/tooltip";
 import { HintItem, HintPosition } from "./hintItem";
 import { Translator, LanguageCode } from "../../i18n/language";
 
@@ -28,7 +28,7 @@ export interface HintOptions {
   /* To determine the tooltip position automatically based on the window.width/height */
   autoPosition: boolean;
   /* Precedence of positions, when auto is enabled */
-  positionPrecedence: TooltipPosition[];
+  positionPrecedence: TooltipBasePosition[];
   /* Optional property to determine if content should be rendered as HTML */
   tooltipRenderAsHtml?: boolean;
   /* Optional property to set the language of the hint.
