@@ -13,38 +13,35 @@ export type HelperLayerProps = {
   helperElementPadding: number;
 };
 
-export const DisableInteraction = ({
+export const DisableInteraction = async ({
   currentStep,
   steps,
   refreshes,
   targetElement,
   helperElementPadding,
-}: HelperLayerProps) => {
+}: HelperLayerProps): Promise<HTMLElement | null> => {
+  // derive current step
   const step = dom.derive(() =>
     currentStep.val !== undefined ? steps[currentStep.val] : null
   );
 
-  return () => {
-    if (!step.val) {
-      return null;
-    }
+  if (!step.val) return null;
 
-    const disableInteraction = div({
-      className: disableInteractionClassName,
-    });
+  const disableInteraction = div({
+    className: disableInteractionClassName,
+  });
 
-    dom.derive(() => {
+  dom.derive(() => {
       // set the position of the reference layer if the refreshes signal changes
       if (!step.val || refreshes.val == undefined) return;
 
-      setPositionRelativeToStep(
-        targetElement,
-        disableInteraction,
-        step.val,
-        helperElementPadding
-      );
-    });
+    setPositionRelativeToStep(
+      targetElement,
+      disableInteraction,
+      step.val,
+      helperElementPadding
+    );
+  });
 
-    return disableInteraction;
-  };
+  return disableInteraction;
 };
