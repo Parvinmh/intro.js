@@ -35,17 +35,15 @@ export type TourStep = {
  * @api private
  */
 export async function nextStep(tour: Tour) {
+  tour.incrementCurrentStep();
+
   const currentStep = tour.getCurrentStep();
 
-  // Calculate what the next step index would be
-  const nextStepIndex = currentStep === undefined ? 0 : currentStep + 1;
-
-  const nextStep = tour.getStep(nextStepIndex);
-
-  if (nextStep === undefined) {
+  if (currentStep === undefined) {
     return false;
   }
 
+  const nextStep = tour.getStep(currentStep);
   let continueStep: boolean | undefined = true;
 
   continueStep = await tour
@@ -53,17 +51,15 @@ export async function nextStep(tour: Tour) {
     ?.call(
       tour,
       nextStep && (nextStep.element as HTMLElement),
-      nextStepIndex,
+      tour.getCurrentStep(),
       tour.getDirection()
     );
 
   // if `onBeforeChange` returned `false`, stop displaying the element
   if (continueStep === false) {
+    tour.decrementCurrentStep();
     return false;
   }
-
-  // Only increment the step after the callback has resolved
-  tour.incrementCurrentStep();
 
   if (tour.isEnd()) {
     // check if any callback is defined
@@ -90,15 +86,15 @@ export async function previousStep(tour: Tour) {
     return false;
   }
 
-  // Calculate what the previous step index would be
-  const prevStepIndex = currentStep - 1;
+  tour.decrementCurrentStep();
+  // update the current step after decrementing
+  currentStep = tour.getCurrentStep();
 
-  const nextStep = tour.getStep(prevStepIndex);
-
-  if (nextStep === undefined) {
+  if (currentStep === undefined) {
     return false;
   }
 
+  const nextStep = tour.getStep(currentStep);
   let continueStep: boolean | undefined = true;
 
   continueStep = await tour
@@ -106,17 +102,15 @@ export async function previousStep(tour: Tour) {
     ?.call(
       tour,
       nextStep && (nextStep.element as HTMLElement),
-      prevStepIndex,
+      tour.getCurrentStep(),
       tour.getDirection()
     );
 
   // if `onBeforeChange` returned `false`, stop displaying the element
   if (continueStep === false) {
+    tour.incrementCurrentStep();
     return false;
   }
-
-  // Only decrement the step after the callback has resolved
-  tour.decrementCurrentStep();
 
   await showElement(tour, nextStep);
 
