@@ -21,7 +21,7 @@ export const TourRoot = async ({
   const refreshesSignal = tour.getRefreshesSignal();
   const steps = tour.getSteps();
 
-  const helperLayer = HelperLayer({
+  const helperLayer = await HelperLayer({
     currentStep: currentStepSignal,
     steps,
     refreshes: refreshesSignal,
@@ -35,7 +35,21 @@ export const TourRoot = async ({
   // render the tooltip immediately when the tour starts
   // but we reset the transition duration to 300ms when the tooltip is rendered for the first time
   let tooltipTransitionDuration = 0;
+  const exitOnOverlayClick = tour.getOption("exitOnOverlayClick") === true;
+  const overlayLayer = await OverlayLayer({
+    exitOnOverlayClick,
+    onExitTour: async () => {
+      return tour.exit();
+    },
+  });
 
+  let disableInteraction = await DisableInteraction({
+    currentStep: currentStepSignal,
+    steps: tour.getSteps(),
+    refreshes: refreshesSignal,
+    targetElement: tour.getTargetElement(),
+    helperElementPadding: tour.getOption("helperElementPadding"),
+  });
   const root = div(
     {
       className: "introjs-tour",
@@ -59,14 +73,6 @@ export const TourRoot = async ({
       if (!step.val) {
         return null;
       }
-
-      const exitOnOverlayClick = tour.getOption("exitOnOverlayClick") === true;
-      const overlayLayer = OverlayLayer({
-        exitOnOverlayClick,
-        onExitTour: async () => {
-          return tour.exit();
-        },
-      });
 
       // Create placeholder for async tooltip
       const referencePlaceholder = div();
@@ -161,14 +167,8 @@ export const TourRoot = async ({
 
       const referenceLayer = referencePlaceholder;
 
-      const disableInteraction = step.val.disableInteraction
-        ? DisableInteraction({
-            currentStep: currentStepSignal,
-            steps: tour.getSteps(),
-            refreshes: refreshesSignal,
-            targetElement: tour.getTargetElement(),
-            helperElementPadding: tour.getOption("helperElementPadding"),
-          })
+      const disableInteractions = step.val.disableInteraction
+        ? disableInteraction
         : null;
 
       // wait for the helper layer to be rendered before showing the tooltip
@@ -176,7 +176,7 @@ export const TourRoot = async ({
       // the 300ms delay is coming from the helper layer transition duration
       tooltipTransitionDuration = 300;
 
-      return div(overlayLayer, referenceLayer, disableInteraction);
+      return div(overlayLayer, referenceLayer, disableInteractions);
     }
   );
 
