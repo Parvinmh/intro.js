@@ -15,40 +15,39 @@ export type ReferenceLayerProps = HintTooltipProps & {
   helperElementPadding: number;
 };
 
-export const ReferenceLayer = ({
+export const ReferenceLayer = async ({
   activeHintSignal,
   targetElement,
   helperElementPadding,
   ...props
-}: ReferenceLayerProps) => {
+}: ReferenceLayerProps): Promise<HTMLElement | null> => {
   const initialActiveHintSignal = activeHintSignal.val;
 
-  return () => {
-    // remove the reference layer if the active hint signal is set to undefined
-    // e.g. when the user clicks outside the hint
-    if (activeHintSignal.val == undefined) return null;
+  if (
+    activeHintSignal.val == undefined ||
+    initialActiveHintSignal !== activeHintSignal.val
+  ) {
+    return null;
+  }
 
-    // remove the reference layer if the active hint signal changes
-    // and the initial active hint signal is not same as the current active hint signal (e.g. when the user clicks on another hint)
-    if (initialActiveHintSignal !== activeHintSignal.val) return null;
+  const tooltip = await HintTooltip(props);
 
-    const referenceLayer = div(
-      {
-        [dataStepAttribute]: activeHintSignal.val,
-        className: `${tooltipReferenceLayerClassName} ${hintReferenceClassName}`,
-      },
-      HintTooltip(props)
+  const referenceLayer = div(
+    {
+      [dataStepAttribute]: activeHintSignal.val,
+      className: `${tooltipReferenceLayerClassName} ${hintReferenceClassName}`,
+    },
+    tooltip
+  );
+
+  setTimeout(() => {
+    setPositionRelativeTo(
+      targetElement,
+      referenceLayer,
+      props.hintItem.hintTooltipElement as HTMLElement,
+      helperElementPadding
     );
+  }, 1);
 
-    setTimeout(() => {
-      setPositionRelativeTo(
-        targetElement,
-        referenceLayer,
-        props.hintItem.hintTooltipElement as HTMLElement,
-        helperElementPadding
-      );
-    }, 1);
-
-    return referenceLayer;
-  };
+  return referenceLayer;
 };

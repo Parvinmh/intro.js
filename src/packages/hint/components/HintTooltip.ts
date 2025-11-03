@@ -19,7 +19,7 @@ export type HintTooltipProps = Omit<
   renderAsHtml?: boolean;
 };
 
-export const HintTooltip = ({
+export const HintTooltip = async ({
   hintItem,
   closeButtonEnabled,
   closeButtonOnClick,
@@ -28,7 +28,7 @@ export const HintTooltip = ({
   className,
   renderAsHtml,
   ...props
-}: HintTooltipProps) => {
+}: HintTooltipProps): Promise<HTMLElement> => {
   const text = hintItem.hint;
 
   return Tooltip(

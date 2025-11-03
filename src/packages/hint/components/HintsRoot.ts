@@ -64,7 +64,11 @@ export const HintsRoot = ({ hint }: HintsRootProps) => {
 
     if (!hintItem) return;
 
-    const referenceLayer = ReferenceLayer({
+    // Create placeholder for async tooltip
+    const referencePlaceholder = div();
+
+    // Async load the reference layer
+    ReferenceLayer({
       activeHintSignal,
       hintItem,
 
@@ -87,7 +91,13 @@ export const HintsRoot = ({ hint }: HintsRootProps) => {
       closeButtonOnClick: (hintItem: HintItem) => hideHint(hint, hintItem),
       className: hint.getOption("tooltipClass"),
       text: hintItem.hint,
+    }).then((referenceLayer) => {
+      if (referenceLayer) {
+        referencePlaceholder.replaceWith(referenceLayer);
+      }
     });
+
+    const referenceLayer = referencePlaceholder;
 
     dom.add(root, referenceLayer);
   });
