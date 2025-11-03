@@ -38,7 +38,7 @@ export type HelperLayerProps = {
   helperLayerPadding: number;
 };
 
-export const HelperLayer = ({
+export const HelperLayer = async ({
   currentStep,
   steps,
   refreshes,
@@ -46,7 +46,7 @@ export const HelperLayer = ({
   tourHighlightClass,
   overlayOpacity,
   helperLayerPadding,
-}: HelperLayerProps) => {
+}: HelperLayerProps): Promise<HTMLElement | null> => {
   const step = dom.derive(() =>
     currentStep.val !== undefined ? steps[currentStep.val] : null
   );
