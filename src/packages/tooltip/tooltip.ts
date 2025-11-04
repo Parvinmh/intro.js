@@ -437,20 +437,14 @@ export const Tooltip = async (
       [children],
     ]
   );
-
-  // Apply fade-in transition asynchronously
-  await new Promise<void>((resolve) => {
-    setTimeout(() => {
-      opacity.val = 1;
-      resolve();
-    }, transitionDuration);
-  });
-
   setTimeout(() => {
-    // set the correct height and width of the tooltip after it has been rendered
     tooltipHeight.val = tooltip.offsetHeight;
     tooltipWidth.val = tooltip.offsetWidth;
   }, 1);
+
+  setTimeout(() => {
+    opacity.val = 1;
+  }, transitionDuration);
 
   return tooltip;
 };

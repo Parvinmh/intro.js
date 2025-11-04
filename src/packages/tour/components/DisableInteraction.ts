@@ -32,8 +32,8 @@ export const DisableInteraction = async ({
   });
 
   dom.derive(() => {
-      // set the position of the reference layer if the refreshes signal changes
-      if (!step.val || refreshes.val == undefined) return;
+    // set the position of the reference layer if the refreshes signal changes
+    if (!step.val || refreshes.val == undefined) return;
 
     setPositionRelativeToStep(
       targetElement,

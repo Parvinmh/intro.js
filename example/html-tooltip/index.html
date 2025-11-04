@@ -70,9 +70,11 @@
     </div>
     <script type="text/javascript" src="../../dist/intro.js"></script>
     <script type="text/javascript">
-           function delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-      }
+function onBeforeChange () {
+  return new Promise((resolve) => {
+    setTimeout(resolve, 1000)
+  })
+}
       function startIntro(){
         var intro = introJs.tour();
           intro.setOptions({
@@ -104,9 +106,7 @@
               }
             ]
           });
-          intro.onbeforechange(async function () {
-          await delay(4000);
-        });
+          intro.onBeforeChange(onBeforeChange)
           intro.start();
       }
     </script>

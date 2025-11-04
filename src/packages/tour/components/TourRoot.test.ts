@@ -6,6 +6,12 @@ jest.mock("./OverlayLayer", () => ({
 jest.mock("./DisableInteraction", () => ({
   DisableInteraction: jest.fn(() => "DisableInteraction"),
 }));
+jest.mock("./HelperLayer", () => ({
+  HelperLayer: jest.fn(() => "HelperLayer"),
+}));
+jest.mock("./ReferenceLayer", () => ({
+  ReferenceLayer: jest.fn(() => "ReferenceLayer"),
+}));
 jest.mock("../steps", () => ({ nextStep: jest.fn(), previousStep: jest.fn() }));
 
 jest.useFakeTimers();
@@ -17,8 +23,15 @@ describe("TourRoot", () => {
     tour = {
       getCurrentStepSignal: jest.fn(() => ({ val: 0 })),
       getRefreshesSignal: jest.fn(() => ({ val: 0 })),
-      getSteps: jest.fn(() => [{ disableInteraction: false }]),
-      getTargetElement: jest.fn(() => "targetElement"),
+      getStepReadySignal: jest.fn(() => ({ val: true })),
+      getSteps: jest.fn(() => [
+        {
+          disableInteraction: false,
+          element: document.createElement("div"),
+          intro: "test",
+        },
+      ]),
+      getTargetElement: jest.fn(() => document.createElement("div")),
       getOption: jest.fn((option: keyof typeof Option) => {
         const options = {
           highlightClass: "highlight",

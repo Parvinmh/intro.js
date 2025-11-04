@@ -30,6 +30,7 @@ export class Tour implements Package<TourOptions> {
   private _steps: TourStep[] = [];
   private _currentStepSignal = dom.state<number | undefined>(undefined);
   private _refreshesSignal = dom.state(0);
+  private _stepReadySignal = dom.state<boolean>(false);
   private _root: Element | undefined;
   private _direction: "forward" | "backward";
   private readonly _targetElement: HTMLElement;
@@ -179,6 +180,14 @@ export class Tour implements Package<TourOptions> {
    */
   getRefreshesSignal() {
     return this._refreshesSignal;
+  }
+
+  /**
+   * Returns the underlying state of the step ready signal
+   * This is an internal method and should not be used outside of the package.
+   */
+  getStepReadySignal() {
+    return this._stepReadySignal;
   }
 
   /**

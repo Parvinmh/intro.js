@@ -19,12 +19,14 @@ export const TourRoot = async ({
 }: TourRootProps): Promise<HTMLElement> => {
   const currentStepSignal = tour.getCurrentStepSignal();
   const refreshesSignal = tour.getRefreshesSignal();
+  const stepReadySignal = tour.getStepReadySignal();
   const steps = tour.getSteps();
 
   const helperLayer = await HelperLayer({
     currentStep: currentStepSignal,
     steps,
     refreshes: refreshesSignal,
+    stepReady: stepReadySignal,
     targetElement: tour.getTargetElement(),
     tourHighlightClass: tour.getOption("highlightClass"),
     overlayOpacity: tour.getOption("overlayOpacity"),
@@ -32,152 +34,129 @@ export const TourRoot = async ({
   });
 
   const opacity = dom.state(0);
-  // render the tooltip immediately when the tour starts
-  // but we reset the transition duration to 300ms when the tooltip is rendered for the first time
   let tooltipTransitionDuration = 0;
-  const exitOnOverlayClick = tour.getOption("exitOnOverlayClick") === true;
+
   const overlayLayer = await OverlayLayer({
-    exitOnOverlayClick,
-    onExitTour: async () => {
-      return tour.exit();
-    },
+    exitOnOverlayClick: tour.getOption("exitOnOverlayClick") === true,
+    onExitTour: async () => tour.exit(),
   });
 
-  let disableInteraction = await DisableInteraction({
-    currentStep: currentStepSignal,
-    steps: tour.getSteps(),
-    refreshes: refreshesSignal,
-    targetElement: tour.getTargetElement(),
-    helperElementPadding: tour.getOption("helperElementPadding"),
+  // Placeholders that will be replaced later
+  let referencePlaceholder: HTMLElement = div();
+  let disableInteractionPlaceholder: HTMLElement = div();
+
+  dom.derive(async () => {
+    const currentIndex = currentStepSignal.val;
+    if (currentIndex === undefined) return;
+    const step = steps[currentIndex];
+    if (!step) return;
+
+    // Only proceed if step is ready (onBeforeChange has been called)
+    if (!stepReadySignal.val) return;
+
+    // --- ReferenceLayer ---
+    const referenceLayer = await ReferenceLayer({
+      step,
+      targetElement: tour.getTargetElement(),
+      refreshes: refreshesSignal,
+      helperElementPadding: tour.getOption("helperElementPadding"),
+      positionPrecedence: tour.getOption("positionPrecedence"),
+      autoPosition: tour.getOption("autoPosition"),
+      showStepNumbers: tour.getOption("showStepNumbers"),
+      steps,
+      currentStep: currentIndex,
+      onBulletClick: (stepNumber: number) => tour.goToStep(stepNumber),
+      bullets: tour.getOption("showBullets"),
+      buttons: tour.getOption("showButtons"),
+      nextLabel: tour.getOption("nextLabel"),
+      onNextClick: async (e: any) => {
+        if (!tour.isLastStep()) {
+          await nextStep(tour);
+        } else if (
+          new RegExp(doneButtonClassName, "gi").test(
+            (e.target as HTMLElement).className
+          )
+        ) {
+          await tour
+            .callback("complete")
+            ?.call(tour, tour.getCurrentStep(), "done");
+          await tour.exit();
+        }
+      },
+      prevLabel: tour.getOption("prevLabel"),
+      onPrevClick: async () => {
+        const currentStep = tour.getCurrentStep();
+        if (currentStep !== undefined && currentStep > 0) {
+          await previousStep(tour);
+        }
+      },
+      skipLabel: tour.getOption("skipLabel"),
+      onSkipClick: async () => {
+        if (tour.isLastStep()) {
+          await tour
+            .callback("complete")
+            ?.call(tour, tour.getCurrentStep(), "skip");
+        }
+
+        await tour.callback("skip")?.call(tour, tour.getCurrentStep());
+
+        await tour.exit();
+      },
+      buttonClass: tour.getOption("buttonClass"),
+      nextToDone: tour.getOption("nextToDone"),
+      doneLabel: tour.getOption("doneLabel"),
+      hideNext: tour.getOption("hideNext"),
+      hidePrev: tour.getOption("hidePrev"),
+      className: step.tooltipClass || tour.getOption("tooltipClass"),
+      progress: tour.getOption("showProgress"),
+      progressBarAdditionalClass: tour.getOption("progressBarAdditionalClass"),
+      stepNumbers: tour.getOption("showStepNumbers"),
+      stepNumbersOfLabel: tour.getOption("stepNumbersOfLabel"),
+      scrollToElement: tour.getOption("scrollToElement"),
+      scrollPadding: tour.getOption("scrollPadding"),
+      dontShowAgain: tour.getOption("dontShowAgain"),
+      onDontShowAgainChange: (checked: boolean) =>
+        tour.setDontShowAgain(checked),
+      dontShowAgainLabel: tour.getOption("dontShowAgainLabel"),
+      renderAsHtml: tour.getOption("tooltipRenderAsHtml"),
+      text: step.title || step.intro,
+      transitionDuration: tooltipTransitionDuration,
+    });
+
+    referencePlaceholder.replaceWith(
+      referenceLayer ?? document.createElement("div")
+    );
+    referencePlaceholder = referenceLayer ?? document.createElement("div");
+
+    // --- DisableInteraction ---
+    const disableInteraction =
+      step.disableInteraction === true
+        ? await DisableInteraction({
+            currentStep: currentStepSignal,
+            steps,
+            refreshes: refreshesSignal,
+            targetElement: tour.getTargetElement(),
+            helperElementPadding: tour.getOption("helperElementPadding"),
+          })
+        : div();
+
+    disableInteractionPlaceholder.replaceWith(
+      disableInteraction ?? document.createElement("div")
+    );
+    disableInteractionPlaceholder =
+      disableInteraction ?? document.createElement("div");
   });
+
+  // Root container
   const root = div(
     {
       className: "introjs-tour",
       style: () => style({ opacity: `${opacity.val}` }),
     },
-    // helperLayer should not be re-rendered when the state changes for the transition to work
     helperLayer,
-    () => {
-      // do not remove this check, it is necessary for this state-binding to work
-      // and render the entire section every time the state changes
-      if (currentStepSignal.val === undefined) {
-        return null;
-      }
-
-      const step = dom.derive(() =>
-        currentStepSignal.val !== undefined
-          ? steps[currentStepSignal.val]
-          : null
-      );
-
-      if (!step.val) {
-        return null;
-      }
-
-      // Create placeholder for async tooltip
-      const referencePlaceholder = div();
-
-      // Async load the reference layer
-      ReferenceLayer({
-        step: step.val,
-        targetElement: tour.getTargetElement(),
-        refreshes: refreshesSignal,
-        helperElementPadding: tour.getOption("helperElementPadding"),
-
-        transitionDuration: tooltipTransitionDuration,
-
-        positionPrecedence: tour.getOption("positionPrecedence"),
-        autoPosition: tour.getOption("autoPosition"),
-        showStepNumbers: tour.getOption("showStepNumbers"),
-
-        steps: tour.getSteps(),
-        currentStep: currentStepSignal.val,
-
-        onBulletClick: (stepNumber: number) => {
-          tour.goToStep(stepNumber);
-        },
-
-        bullets: tour.getOption("showBullets"),
-
-        buttons: tour.getOption("showButtons"),
-        nextLabel: tour.getOption("nextLabel"),
-        onNextClick: async (e: any) => {
-          if (!tour.isLastStep()) {
-            await nextStep(tour);
-          } else if (
-            new RegExp(doneButtonClassName, "gi").test(
-              (e.target as HTMLElement).className
-            )
-          ) {
-            await tour
-              .callback("complete")
-              ?.call(tour, tour.getCurrentStep(), "done");
-
-            await tour.exit();
-          }
-        },
-        prevLabel: tour.getOption("prevLabel"),
-        onPrevClick: async () => {
-          const currentStep = tour.getCurrentStep();
-          if (currentStep !== undefined && currentStep > 0) {
-            await previousStep(tour);
-          }
-        },
-        skipLabel: tour.getOption("skipLabel"),
-        onSkipClick: async () => {
-          if (tour.isLastStep()) {
-            await tour
-              .callback("complete")
-              ?.call(tour, tour.getCurrentStep(), "skip");
-          }
-
-          await tour.callback("skip")?.call(tour, tour.getCurrentStep());
-
-          await tour.exit();
-        },
-        buttonClass: tour.getOption("buttonClass"),
-        nextToDone: tour.getOption("nextToDone"),
-        doneLabel: tour.getOption("doneLabel"),
-        hideNext: tour.getOption("hideNext"),
-        hidePrev: tour.getOption("hidePrev"),
-        className: step.val.tooltipClass || tour.getOption("tooltipClass"),
-        progress: tour.getOption("showProgress"),
-        progressBarAdditionalClass: tour.getOption(
-          "progressBarAdditionalClass"
-        ),
-
-        stepNumbers: tour.getOption("showStepNumbers"),
-        stepNumbersOfLabel: tour.getOption("stepNumbersOfLabel"),
-
-        scrollToElement: tour.getOption("scrollToElement"),
-        scrollPadding: tour.getOption("scrollPadding"),
-
-        dontShowAgain: tour.getOption("dontShowAgain"),
-        onDontShowAgainChange: (checked: boolean) => {
-          tour.setDontShowAgain(checked);
-        },
-        dontShowAgainLabel: tour.getOption("dontShowAgainLabel"),
-        renderAsHtml: tour.getOption("tooltipRenderAsHtml"),
-        text: step.val.title || step.val.intro,
-      }).then((referenceLayer) => {
-        if (referenceLayer) {
-          referencePlaceholder.replaceWith(referenceLayer);
-        }
-      });
-
-      const referenceLayer = referencePlaceholder;
-
-      const disableInteractions = step.val.disableInteraction
-        ? disableInteraction
-        : null;
-
-      // wait for the helper layer to be rendered before showing the tooltip
-      // this is to prevent the tooltip from flickering when the helper layer is transitioning
-      // the 300ms delay is coming from the helper layer transition duration
-      tooltipTransitionDuration = 300;
-
-      return div(overlayLayer, referenceLayer, disableInteractions);
-    }
+    overlayLayer,
+    referencePlaceholder,
+    disableInteractionPlaceholder
   );
 
   dom.derive(() => {
