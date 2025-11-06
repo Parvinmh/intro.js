@@ -19,14 +19,14 @@ export const TourRoot = async ({
 }: TourRootProps): Promise<HTMLElement> => {
   const currentStepSignal = tour.getCurrentStepSignal();
   const refreshesSignal = tour.getRefreshesSignal();
-  const stepReadySignal = tour.getStepReadySignal();
+  //const stepReadySignal = tour.getStepReadySignal();
   const steps = tour.getSteps();
 
   const helperLayer = await HelperLayer({
     currentStep: currentStepSignal,
     steps,
     refreshes: refreshesSignal,
-    stepReady: stepReadySignal,
+    //stepReady: stepReadySignal,
     targetElement: tour.getTargetElement(),
     tourHighlightClass: tour.getOption("highlightClass"),
     overlayOpacity: tour.getOption("overlayOpacity"),
@@ -41,19 +41,22 @@ export const TourRoot = async ({
     onExitTour: async () => tour.exit(),
   });
 
-  // Placeholders that will be replaced later
-  let referencePlaceholder: HTMLElement = div();
-  let disableInteractionPlaceholder: HTMLElement = div();
+  const referenceContainer = div();
+  const disableInteractionContainer = div();
 
-  dom.derive(async () => {
+  dom.derive(() => {
     const currentIndex = currentStepSignal.val;
     if (currentIndex === undefined) return;
     const step = steps[currentIndex];
     if (!step) return;
 
-    // Only proceed if step is ready (onBeforeChange has been called)
-    if (!stepReadySignal.val) return;
+   queueMicrotask(() => updateLayers(step, currentIndex));
+  });
 
+  async function updateLayers(
+    step: (typeof steps)[number],
+    currentIndex: number
+  ) {
     // --- ReferenceLayer ---
     const referenceLayer = await ReferenceLayer({
       step,
@@ -115,19 +118,20 @@ export const TourRoot = async ({
       scrollToElement: tour.getOption("scrollToElement"),
       scrollPadding: tour.getOption("scrollPadding"),
       dontShowAgain: tour.getOption("dontShowAgain"),
-      onDontShowAgainChange: (checked: boolean) =>
-        tour.setDontShowAgain(checked),
+      onDontShowAgainChange: (checked) => tour.setDontShowAgain(checked),
       dontShowAgainLabel: tour.getOption("dontShowAgainLabel"),
       renderAsHtml: tour.getOption("tooltipRenderAsHtml"),
       text: step.title || step.intro,
       transitionDuration: tooltipTransitionDuration,
     });
 
-    referencePlaceholder.replaceWith(
-      referenceLayer ?? document.createElement("div")
-    );
-    referencePlaceholder = referenceLayer ?? document.createElement("div");
+    const safeReference = referenceLayer ?? div();
+    await Promise.resolve();
 
+    requestAnimationFrame(() => {
+      referenceContainer.replaceChildren(safeReference);
+      disableInteractionContainer.replaceChildren(safeDisableInteraction);
+    });
     // --- DisableInteraction ---
     const disableInteraction =
       step.disableInteraction === true
@@ -140,12 +144,14 @@ export const TourRoot = async ({
           })
         : div();
 
-    disableInteractionPlaceholder.replaceWith(
-      disableInteraction ?? document.createElement("div")
-    );
-    disableInteractionPlaceholder =
-      disableInteraction ?? document.createElement("div");
-  });
+    const safeDisableInteraction = disableInteraction ?? div();
+
+    await Promise.resolve();
+
+    requestAnimationFrame(() => {
+      disableInteractionContainer.replaceChildren(safeDisableInteraction);
+    });
+  }
 
   // Root container
   const root = div(
@@ -155,8 +161,8 @@ export const TourRoot = async ({
     },
     helperLayer,
     overlayLayer,
-    referencePlaceholder,
-    disableInteractionPlaceholder
+    referenceContainer,
+    disableInteractionContainer
   );
 
   dom.derive(() => {
@@ -170,10 +176,9 @@ export const TourRoot = async ({
     }
   });
 
-  setTimeout(() => {
-    // fade in the root element
+  queueMicrotask(() => {
     opacity.val = 1;
-  }, 1);
+  });
 
   return root;
 };

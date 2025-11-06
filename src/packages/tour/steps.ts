@@ -47,8 +47,7 @@ export async function nextStep(tour: Tour) {
   let continueStep: boolean | undefined = true;
 
   // Set step ready signal to false before onBeforeChange
-  tour.getStepReadySignal().val = false;
-
+  // tour.getStepReadySignal().val = false;
   continueStep = await tour
     .callback("beforeChange")
     ?.call(
@@ -73,7 +72,7 @@ export async function nextStep(tour: Tour) {
   }
 
   // Set step ready signal to true after onBeforeChange callback
-  tour.getStepReadySignal().val = true;
+  //tour.getStepReadySignal().val = true;
 
   await showElement(tour, nextStep);
 
@@ -104,7 +103,7 @@ export async function previousStep(tour: Tour) {
   let continueStep: boolean | undefined = true;
 
   // Set step ready signal to false before onBeforeChange
-  tour.getStepReadySignal().val = false;
+  //tour.getStepReadySignal().val = false;
 
   continueStep = await tour
     .callback("beforeChange")
@@ -122,7 +121,7 @@ export async function previousStep(tour: Tour) {
   }
 
   // Set step ready signal to true after onBeforeChange callback
-  tour.getStepReadySignal().val = true;
+  //tour.getStepReadySignal().val = true;
 
   await showElement(tour, nextStep);
 

@@ -13,27 +13,24 @@ export type OverlayLayerProps = {
 export const OverlayLayer = async ({
   exitOnOverlayClick,
   onExitTour,
-}: OverlayLayerProps) => {
-  return new Promise<HTMLDivElement>((resolve) => {
-    const overlayLayer = div({
-      className: overlayClassName,
-      style: style({
-        top: 0,
-        bottom: 0,
-        left: 0,
-        right: 0,
-        position: "fixed",
-        cursor: exitOnOverlayClick ? "pointer" : "auto",
-      }),
-    });
-
-    if (exitOnOverlayClick) {
-      overlayLayer.onclick = async () => {
-        await onExitTour();
-      };
-    }
-
-    document.body.appendChild(overlayLayer);
-    requestAnimationFrame(() => resolve(overlayLayer));
+}: OverlayLayerProps): Promise<HTMLElement> => {
+  const overlayLayer = div({
+    className: overlayClassName,
+    style: style({
+      top: 0,
+      bottom: 0,
+      left: 0,
+      right: 0,
+      position: "fixed",
+      cursor: exitOnOverlayClick ? "pointer" : "auto",
+    }),
   });
+
+  if (exitOnOverlayClick) {
+    overlayLayer.onclick = async () => {
+      await onExitTour();
+    };
+  }
+
+  return overlayLayer;
 };

@@ -437,14 +437,18 @@ export const Tooltip = async (
       [children],
     ]
   );
-  setTimeout(() => {
-    tooltipHeight.val = tooltip.offsetHeight;
-    tooltipWidth.val = tooltip.offsetWidth;
-  }, 1);
+  // after tooltip creation (just before return)
+  queueMicrotask(() => {
+    requestAnimationFrame(() => {
+      tooltipHeight.val = tooltip.offsetHeight;
+      tooltipWidth.val = tooltip.offsetWidth;
 
-  setTimeout(() => {
-    opacity.val = 1;
-  }, transitionDuration);
+      // Fade in
+      requestAnimationFrame(() => {
+        opacity.val = 1;
+      });
+    });
+  });
 
   return tooltip;
 };

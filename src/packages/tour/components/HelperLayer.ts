@@ -32,7 +32,6 @@ export type HelperLayerProps = {
   currentStep: State<number | undefined>;
   steps: TourStep[];
   refreshes: State<number>;
-  stepReady: State<boolean>;
   targetElement: HTMLElement;
   tourHighlightClass: string;
   overlayOpacity: number;
@@ -43,7 +42,6 @@ export const HelperLayer = async ({
   currentStep,
   steps,
   refreshes,
-  stepReady,
   targetElement,
   tourHighlightClass,
   overlayOpacity,
@@ -64,7 +62,7 @@ export const HelperLayer = async ({
 
   dom.derive(() => {
     // set the new position if the step or refreshes change
-    if (!step.val || refreshes.val === undefined || !stepReady.val) return;
+    if (!step.val || refreshes.val === undefined) return;
 
     setPositionRelativeToStep(
       targetElement,

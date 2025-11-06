@@ -40,14 +40,14 @@ export const ReferenceLayer = async ({
     tooltip
   );
 
-  setTimeout(() => {
-    setPositionRelativeTo(
-      targetElement,
-      referenceLayer,
-      props.hintItem.hintTooltipElement as HTMLElement,
-      helperElementPadding
-    );
-  }, 1);
+  //setTimeout(() => {
+  setPositionRelativeTo(
+    targetElement,
+    referenceLayer,
+    props.hintItem.hintTooltipElement as HTMLElement,
+    helperElementPadding
+  );
+  //}, 1);
 
   return referenceLayer;
 };
