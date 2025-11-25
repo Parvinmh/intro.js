@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Intro.js Campaign Example</title>
+
+  <link rel="stylesheet" href="../../dist/introjs.css" />
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    
+    #step1, #step2 {
+      padding: 20px;
+      margin: 20px;
+      background: #eef;
+      border-radius: 8px;
+    }
+    
+    .demo-buttons {
+      margin: 20px;
+    }
+    
+    .demo-buttons button {
+      margin: 5px;
+      padding: 10px 20px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .demo-buttons button:hover {
+      background: #45a049;
+    }
+    
+    .status {
+      margin: 20px;
+      padding: 15px;
+      background: #f0f0f0;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Intro.js Campaign System Demo</h1>
+  
+  <div class="status" id="status">
+    <strong>Status:</strong> Loading campaigns automatically...
+  </div>
+  
+  <div class="demo-buttons">
+    <button onclick="reloadCampaign()">Reload Campaign from JSON</button>
+    <button onclick="manualTrigger()">Manually Trigger Campaign</button>
+  </div>
+
+  <h2 id="step1">Step 1 - Welcome</h2>
+  <p id="step2">Step 2 - More Information</p>
+  
+  <div id="step3" style="padding: 20px; margin: 20px; background: #ffe; border-radius: 8px;">
+    <h3>Step 3 - Additional Content</h3>
+    <p>This is some additional content for the tour.</p>
+  </div>
+
+  <script src="../../dist/intro.js"></script>
+
+  <script>
+    // Update status message
+    function updateStatus(message, isError = false) {
+      const status = document.getElementById('status');
+      status.innerHTML = '<strong>Status:</strong> ' + message;
+      status.style.background = isError ? '#ffebee' : '#f0f0f0';
+    }
+
+    // Auto-load campaign on page load
+    window.addEventListener('DOMContentLoaded', async () => {
+      try {
+        updateStatus('Initializing campaigns from JSON file...');
+        
+        // Initialize campaigns from JSON file (correct path for this directory)
+        await introJs.initializeCampaigns("./campaigns/first-visit-tour.json");
+        
+        updateStatus('Campaign loaded successfully! The first-visit campaign should trigger automatically. Clear cookies and refresh to see it again.');
+        
+      } catch (error) {
+        console.error("Failed to auto-load campaign:", error);
+        updateStatus('Failed to load campaign: ' + error.message + '. Try using the "Reload Campaign" button.', true);
+      }
+    });
+
+    // Reload campaign from JSON file
+    async function reloadCampaign() {
+      try {
+        updateStatus('Reloading campaigns from JSON file...');
+        
+        // Initialize campaigns from JSON file
+        await introJs.initializeCampaigns("./first-visit-tour.json");
+        
+        updateStatus('Campaign reloaded successfully! Clear localStorage and refresh to trigger the first-visit campaign again.');
+        alert("Campaign reloaded! Clear your browser's localStorage/cookies and refresh to see the first-visit trigger in action.");
+        
+      } catch (error) {
+        console.error("Failed to load campaign:", error);
+        updateStatus('Failed to load campaign: ' + error.message, true);
+        alert("Failed to load campaign: " + error.message);
+      }
+    }
+
+    // Manually trigger a specific campaign
+    async function manualTrigger() {
+      try {
+        updateStatus('Manually triggering campaign...');
+        
+        // First, make sure campaigns are loaded
+        const manager = introJs.getCampaignManager();
+        await manager.initialize();
+        
+        // Add a simple campaign programmatically
+        await manager.addCampaign({
+          id: 'welcome-tour',
+          name: 'Welcome Tour',
+          active: true,
+          mode: 'tour',
+          triggers: [{ type: 'custom_event', eventName: 'manual_trigger' }],
+          tourOptions: {
+            steps: [
+              {
+                element: '#step1',
+                intro: 'Welcome to the campaign demo!',
+                title: 'Welcome'
+              },
+              {
+                element: '#step2',
+                intro: 'Here you can see different campaign features.',
+                title: 'Features'
+              },
+              {
+                element: '#step3',
+                intro: 'This is the final step of our tour.',
+                title: 'Final Step'
+              }
+            ]
+          }
+        });
+        
+        // Trigger the campaign manually
+        const success = await introJs.triggerCampaign('welcome-tour');
+        if (success) {
+          updateStatus('Campaign triggered successfully!');
+        } else {
+          updateStatus("Campaign couldn't be triggered.", true);
+          alert("Campaign not found or couldn't be triggered.");
+        }
+      } catch (error) {
+        console.error("Failed to trigger campaign:", error);
+        updateStatus('Failed to trigger campaign: ' + error.message, true);
+        alert("Failed to trigger campaign. Check console for details.");
+      }
+    }
+  </script>
+</body>
+</html>

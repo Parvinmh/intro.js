@@ -19,23 +19,27 @@
       "tourOptions": {
         "steps": [
           {
-            "element": "#header",
-            "intro": "Welcome to our application! Let's take a quick tour.",
+            "element": "#step1",
+            "intro": "Welcome to the Intro.js Campaign System! Let's take a quick tour.",
+            "title": "Welcome",
             "position": "bottom"
           },
           {
-            "element": "#navigation",
-            "intro": "This is the main navigation menu. You can access all features from here.",
-            "position": "right"
+            "element": "#step2",
+            "intro": "This campaign was loaded from a JSON file and triggered automatically on your first visit.",
+            "title": "Automatic Triggers",
+            "position": "bottom"
           },
           {
-            "element": "#content",
-            "intro": "Your main content will appear here.",
+            "element": "#step3",
+            "intro": "You can configure campaigns with various triggers, targeting rules, and frequencies.",
+            "title": "Features",
             "position": "top"
           },
           {
-            "element": "#footer",
-            "intro": "That's it! Enjoy using our application.",
+            "element": ".demo-buttons",
+            "intro": "Use these buttons to explore different campaign features. That's it! Enjoy the campaign system.",
+            "title": "Try It Out",
             "position": "top"
           }
         ],
