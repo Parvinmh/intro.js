@@ -9,7 +9,10 @@ export class CampaignStorage {
   /**
    * Check if a campaign can be executed based on frequency settings
    */
-  async canExecuteCampaign(campaignId: string, frequency: CampaignFrequency): Promise<boolean> {
+  async canExecuteCampaign(
+    campaignId: string,
+    frequency: CampaignFrequency
+  ): Promise<boolean> {
     const key = `${this.storagePrefix}${campaignId}`;
     const data = this.getExecutionData(key);
 
@@ -30,10 +33,16 @@ export class CampaignStorage {
         return this.checkTimeWindow(data.lastExecution, 24 * 60 * 60 * 1000);
 
       case "weekly":
-        return this.checkTimeWindow(data.lastExecution, 7 * 24 * 60 * 60 * 1000);
+        return this.checkTimeWindow(
+          data.lastExecution,
+          7 * 24 * 60 * 60 * 1000
+        );
 
       case "monthly":
-        return this.checkTimeWindow(data.lastExecution, 30 * 24 * 60 * 60 * 1000);
+        return this.checkTimeWindow(
+          data.lastExecution,
+          30 * 24 * 60 * 60 * 1000
+        );
 
       case "always":
         // Check cooldown if specified
@@ -64,7 +73,10 @@ export class CampaignStorage {
   /**
    * Get execution data for a campaign
    */
-  private getExecutionData(key: string): { count: number; lastExecution: number | null } {
+  private getExecutionData(key: string): {
+    count: number;
+    lastExecution: number | null;
+  } {
     const stored = localStorage.getItem(key);
     if (!stored) {
       return { count: 0, lastExecution: null };
@@ -80,7 +92,10 @@ export class CampaignStorage {
   /**
    * Check if enough time has passed since last execution
    */
-  private checkTimeWindow(lastExecution: number | null, windowMs: number): boolean {
+  private checkTimeWindow(
+    lastExecution: number | null,
+    windowMs: number
+  ): boolean {
     if (!lastExecution) return true;
     return Date.now() - lastExecution >= windowMs;
   }
@@ -106,7 +121,7 @@ export class CampaignStorage {
         keysToRemove.push(key);
       }
     }
-    keysToRemove.forEach(key => localStorage.removeItem(key));
+    keysToRemove.forEach((key) => localStorage.removeItem(key));
 
     // Clear sessionStorage items with campaign prefix
     const sessionKeysToRemove: string[] = [];
@@ -116,7 +131,7 @@ export class CampaignStorage {
         sessionKeysToRemove.push(key);
       }
     }
-    sessionKeysToRemove.forEach(key => sessionStorage.removeItem(key));
+    sessionKeysToRemove.forEach((key) => sessionStorage.removeItem(key));
   }
 
   /**
@@ -135,7 +150,8 @@ export class CampaignStorage {
    * Get all campaign statistics
    */
   getAllStats(): Record<string, { count: number; lastExecution: Date | null }> {
-    const stats: Record<string, { count: number; lastExecution: Date | null }> = {};
+    const stats: Record<string, { count: number; lastExecution: Date | null }> =
+      {};
 
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);

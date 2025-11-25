@@ -20,7 +20,8 @@ export class UserTracker {
 
     // Track session count
     const sessionCountKey = "introjs-campaign-session-count";
-    const sessionCount = parseInt(localStorage.getItem(sessionCountKey) || "0", 10) + 1;
+    const sessionCount =
+      parseInt(localStorage.getItem(sessionCountKey) || "0", 10) + 1;
     localStorage.setItem(sessionCountKey, sessionCount.toString());
 
     // Check if first visit
@@ -33,7 +34,9 @@ export class UserTracker {
     // Get last visit
     const lastVisitKey = "introjs-campaign-last-visit";
     const lastVisitStr = localStorage.getItem(lastVisitKey);
-    const lastVisit = lastVisitStr ? new Date(parseInt(lastVisitStr, 10)) : undefined;
+    const lastVisit = lastVisitStr
+      ? new Date(parseInt(lastVisitStr, 10))
+      : undefined;
     localStorage.setItem(lastVisitKey, Date.now().toString());
 
     // Detect device type
@@ -74,7 +77,12 @@ export class UserTracker {
     const width = window.innerWidth;
     const userAgent = navigator.userAgent.toLowerCase();
 
-    if (width <= 768 || /mobile|android|iphone|ipod|blackberry|iemobile|opera mini/i.test(userAgent)) {
+    if (
+      width <= 768 ||
+      /mobile|android|iphone|ipod|blackberry|iemobile|opera mini/i.test(
+        userAgent
+      )
+    ) {
       return "mobile";
     } else if (width <= 1024 || /tablet|ipad/i.test(userAgent)) {
       return "tablet";

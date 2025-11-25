@@ -1,13 +1,15 @@
 import { TourOptions } from "../tour/option";
 import { HintOptions } from "../hint/option";
+import { Tour } from "../tour/tour";
+import { Hint } from "../hint/hint";
 
 /**
  * Base trigger interface that all triggers must implement
  */
 export interface BaseCampaignTrigger {
   type: string;
-  delay?: number;              // Delay in milliseconds before triggering
-  cookieName?: string;         // Custom cookie name for tracking
+  delay?: number; // Delay in milliseconds before triggering
+  cookieName?: string; // Custom cookie name for tracking
 }
 
 /**
@@ -22,7 +24,7 @@ export interface FirstVisitTrigger extends BaseCampaignTrigger {
  */
 export interface ElementClickTrigger extends BaseCampaignTrigger {
   type: "element_click";
-  selector: string;            // CSS selector for the element
+  selector: string; // CSS selector for the element
 }
 
 /**
@@ -30,8 +32,8 @@ export interface ElementClickTrigger extends BaseCampaignTrigger {
  */
 export interface ElementHoverTrigger extends BaseCampaignTrigger {
   type: "element_hover";
-  selector: string;            // CSS selector for the element
-  hoverDuration?: number;      // Minimum hover duration in ms
+  selector: string; // CSS selector for the element
+  hoverDuration?: number; // Minimum hover duration in ms
 }
 
 /**
@@ -39,7 +41,7 @@ export interface ElementHoverTrigger extends BaseCampaignTrigger {
  */
 export interface IdleUserTrigger extends BaseCampaignTrigger {
   type: "idle_user";
-  idleTime: number;            // Idle time threshold in milliseconds
+  idleTime: number; // Idle time threshold in milliseconds
 }
 
 /**
@@ -54,8 +56,8 @@ export interface PageLoadTrigger extends BaseCampaignTrigger {
  */
 export interface ScrollToElementTrigger extends BaseCampaignTrigger {
   type: "scroll_to_element";
-  selector: string;            // CSS selector for the element
-  threshold?: number;          // Visibility threshold (0-1), default 0.5
+  selector: string; // CSS selector for the element
+  threshold?: number; // Visibility threshold (0-1), default 0.5
 }
 
 /**
@@ -63,7 +65,7 @@ export interface ScrollToElementTrigger extends BaseCampaignTrigger {
  */
 export interface TimeOnPageTrigger extends BaseCampaignTrigger {
   type: "time_on_page";
-  duration: number;            // Duration in milliseconds
+  duration: number; // Duration in milliseconds
 }
 
 /**
@@ -71,7 +73,7 @@ export interface TimeOnPageTrigger extends BaseCampaignTrigger {
  */
 export interface ExitIntentTrigger extends BaseCampaignTrigger {
   type: "exit_intent";
-  sensitivity?: number;        // Mouse movement sensitivity at top (pixels)
+  sensitivity?: number; // Mouse movement sensitivity at top (pixels)
 }
 
 /**
@@ -79,7 +81,7 @@ export interface ExitIntentTrigger extends BaseCampaignTrigger {
  */
 export interface FormInteractionTrigger extends BaseCampaignTrigger {
   type: "form_interaction";
-  selector?: string;           // Optional specific form selector
+  selector?: string; // Optional specific form selector
   interactionType?: "focus" | "input" | "change";
 }
 
@@ -88,7 +90,7 @@ export interface FormInteractionTrigger extends BaseCampaignTrigger {
  */
 export interface CustomEventTrigger extends BaseCampaignTrigger {
   type: "custom_event";
-  eventName: string;           // Name of the custom event to listen for
+  eventName: string; // Name of the custom event to listen for
 }
 
 /**
@@ -96,7 +98,7 @@ export interface CustomEventTrigger extends BaseCampaignTrigger {
  */
 export interface UrlMatchTrigger extends BaseCampaignTrigger {
   type: "url_match";
-  pattern: string;             // Regular expression pattern for URL matching
+  pattern: string; // Regular expression pattern for URL matching
   matchType?: "exact" | "contains" | "regex";
 }
 
@@ -113,7 +115,7 @@ export interface DeviceTypeTrigger extends BaseCampaignTrigger {
  */
 export interface ReturningUserTrigger extends BaseCampaignTrigger {
   type: "returning_user";
-  minVisits?: number;          // Minimum number of previous visits
+  minVisits?: number; // Minimum number of previous visits
 }
 
 /**
@@ -121,7 +123,7 @@ export interface ReturningUserTrigger extends BaseCampaignTrigger {
  */
 export interface SessionCountTrigger extends BaseCampaignTrigger {
   type: "session_count";
-  count: number;               // Session count threshold
+  count: number; // Session count threshold
   operator?: "equal" | "greater" | "less";
 }
 
@@ -130,7 +132,7 @@ export interface SessionCountTrigger extends BaseCampaignTrigger {
  */
 export interface ScrollDepthTrigger extends BaseCampaignTrigger {
   type: "scroll_depth";
-  percentage: number;          // Scroll depth percentage (0-100)
+  percentage: number; // Scroll depth percentage (0-100)
 }
 
 /**
@@ -138,8 +140,8 @@ export interface ScrollDepthTrigger extends BaseCampaignTrigger {
  */
 export interface ElementVisibleTrigger extends BaseCampaignTrigger {
   type: "element_visible";
-  selector: string;            // CSS selector for the element
-  threshold?: number;          // Visibility threshold (0-1)
+  selector: string; // CSS selector for the element
+  threshold?: number; // Visibility threshold (0-1)
 }
 
 /**
@@ -168,55 +170,55 @@ export type CampaignTrigger =
  */
 export interface CampaignFrequency {
   type: "once" | "daily" | "weekly" | "monthly" | "session" | "always";
-  limit?: number;              // Maximum number of times to show
-  cooldownMs?: number;         // Cooldown period in milliseconds
+  limit?: number; // Maximum number of times to show
+  cooldownMs?: number; // Cooldown period in milliseconds
 }
 
 /**
  * Campaign targeting options
  */
 export interface CampaignTargeting {
-  userAgent?: string[];        // User agent patterns (regex)
-  language?: string[];         // Browser languages (e.g., ["en", "en-US"])
-  referrer?: string[];         // Referrer patterns (regex)
+  userAgent?: string[]; // User agent patterns (regex)
+  language?: string[]; // Browser languages (e.g., ["en", "en-US"])
+  referrer?: string[]; // Referrer patterns (regex)
   queryParams?: Record<string, string>; // URL query parameters
   localStorage?: Record<string, string>; // Local storage key-value pairs
   sessionStorage?: Record<string, string>; // Session storage key-value pairs
-  customFunction?: string;     // Custom targeting function name (global window function)
+  customFunction?: string; // Custom targeting function name (global window function)
 }
 
 /**
  * Main campaign configuration
  */
 export interface Campaign {
-  id: string;                  // Unique campaign identifier
-  name: string;                // Campaign name
-  description?: string;        // Campaign description
-  version?: string;            // Campaign version
-  active: boolean;             // Whether campaign is active
-  
+  id: string; // Unique campaign identifier
+  name: string; // Campaign name
+  description?: string; // Campaign description
+  version?: string; // Campaign version
+  active: boolean; // Whether campaign is active
+
   // Trigger configuration - can have multiple triggers (OR logic)
   triggers: CampaignTrigger[];
-  
+
   // Tour or Hint mode
-  mode: "tour" | "hint";
-  
+  mode: Tour | Hint;
+
   // Tour configuration - uses existing TourOptions structure
   tourOptions?: Partial<TourOptions>;
-  
+
   // Hint configuration - uses existing HintOptions structure
   hintOptions?: Partial<HintOptions>;
-  
+
   // Frequency and targeting
   frequency?: CampaignFrequency;
   targeting?: CampaignTargeting;
-  
+
   // Metadata
   createdAt?: string;
   updatedAt?: string;
   author?: string;
   tags?: string[];
-  priority?: number;           // Priority for when multiple campaigns match (higher = higher priority)
+  priority?: number; // Priority for when multiple campaigns match (higher = higher priority)
 }
 
 /**
@@ -270,50 +272,74 @@ export interface CampaignExecutionStatus {
 /**
  * Type guard functions for triggers
  */
-export function isElementClickTrigger(trigger: CampaignTrigger): trigger is ElementClickTrigger {
+export function isElementClickTrigger(
+  trigger: CampaignTrigger
+): trigger is ElementClickTrigger {
   return trigger.type === "element_click";
 }
 
-export function isElementHoverTrigger(trigger: CampaignTrigger): trigger is ElementHoverTrigger {
+export function isElementHoverTrigger(
+  trigger: CampaignTrigger
+): trigger is ElementHoverTrigger {
   return trigger.type === "element_hover";
 }
 
-export function isScrollToElementTrigger(trigger: CampaignTrigger): trigger is ScrollToElementTrigger {
+export function isScrollToElementTrigger(
+  trigger: CampaignTrigger
+): trigger is ScrollToElementTrigger {
   return trigger.type === "scroll_to_element";
 }
 
-export function isIdleUserTrigger(trigger: CampaignTrigger): trigger is IdleUserTrigger {
+export function isIdleUserTrigger(
+  trigger: CampaignTrigger
+): trigger is IdleUserTrigger {
   return trigger.type === "idle_user";
 }
 
-export function isTimeOnPageTrigger(trigger: CampaignTrigger): trigger is TimeOnPageTrigger {
+export function isTimeOnPageTrigger(
+  trigger: CampaignTrigger
+): trigger is TimeOnPageTrigger {
   return trigger.type === "time_on_page";
 }
 
-export function isFormInteractionTrigger(trigger: CampaignTrigger): trigger is FormInteractionTrigger {
+export function isFormInteractionTrigger(
+  trigger: CampaignTrigger
+): trigger is FormInteractionTrigger {
   return trigger.type === "form_interaction";
 }
 
-export function isCustomEventTrigger(trigger: CampaignTrigger): trigger is CustomEventTrigger {
+export function isCustomEventTrigger(
+  trigger: CampaignTrigger
+): trigger is CustomEventTrigger {
   return trigger.type === "custom_event";
 }
 
-export function isUrlMatchTrigger(trigger: CampaignTrigger): trigger is UrlMatchTrigger {
+export function isUrlMatchTrigger(
+  trigger: CampaignTrigger
+): trigger is UrlMatchTrigger {
   return trigger.type === "url_match";
 }
 
-export function isDeviceTypeTrigger(trigger: CampaignTrigger): trigger is DeviceTypeTrigger {
+export function isDeviceTypeTrigger(
+  trigger: CampaignTrigger
+): trigger is DeviceTypeTrigger {
   return trigger.type === "device_type";
 }
 
-export function isSessionCountTrigger(trigger: CampaignTrigger): trigger is SessionCountTrigger {
+export function isSessionCountTrigger(
+  trigger: CampaignTrigger
+): trigger is SessionCountTrigger {
   return trigger.type === "session_count";
 }
 
-export function isScrollDepthTrigger(trigger: CampaignTrigger): trigger is ScrollDepthTrigger {
+export function isScrollDepthTrigger(
+  trigger: CampaignTrigger
+): trigger is ScrollDepthTrigger {
   return trigger.type === "scroll_depth";
 }
 
-export function isElementVisibleTrigger(trigger: CampaignTrigger): trigger is ElementVisibleTrigger {
+export function isElementVisibleTrigger(
+  trigger: CampaignTrigger
+): trigger is ElementVisibleTrigger {
   return trigger.type === "element_visible";
 }

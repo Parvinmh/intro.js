@@ -1,4 +1,9 @@
-import { Campaign, CampaignTrigger, CampaignContext, CampaignCollection } from "./types";
+import {
+  Campaign,
+  CampaignTrigger,
+  CampaignContext,
+  CampaignCollection,
+} from "./types";
 import { Tour } from "../tour/tour";
 import { TriggerDetector } from "./triggers";
 import { UserTracker } from "./userTracker";
@@ -30,7 +35,7 @@ export class CampaignManager {
 
     await this.userTracker.initialize();
     await this.triggerDetector.initialize();
-    
+
     this.isInitialized = true;
   }
 
@@ -39,7 +44,7 @@ export class CampaignManager {
    */
   async loadCampaigns(config: CampaignCollection | Campaign[]): Promise<void> {
     const campaigns = Array.isArray(config) ? config : config.campaigns;
-    
+
     for (const campaign of campaigns) {
       if (campaign.active) {
         this.campaigns.set(campaign.id, campaign);
@@ -79,7 +84,7 @@ export class CampaignManager {
     if (campaign) {
       this.triggerDetector.removeCampaignTriggers(campaignId);
       this.campaigns.delete(campaignId);
-      
+
       // Stop active tour if running
       const activeTour = this.activeTours.get(campaignId);
       if (activeTour) {
@@ -130,7 +135,7 @@ export class CampaignManager {
    */
   private async checkTargeting(targeting: any): Promise<boolean> {
     const userContext = this.userTracker.getUserContext();
-    
+
     // Check user agent
     if (targeting.userAgent) {
       const matches = targeting.userAgent.some((pattern: string) =>
@@ -190,7 +195,10 @@ export class CampaignManager {
   /**
    * Execute a campaign
    */
-  async executeCampaign(campaignId: string, trigger: CampaignTrigger): Promise<boolean> {
+  async executeCampaign(
+    campaignId: string,
+    trigger: CampaignTrigger
+  ): Promise<boolean> {
     const campaign = this.campaigns.get(campaignId);
     if (!campaign) return false;
 
@@ -216,7 +224,9 @@ export class CampaignManager {
     await this.storage.trackCampaignExecution(campaignId);
 
     // Convert campaign steps to tour steps
-    const tourSteps = campaign.tour.steps.map((step) => ({
+    const steps = campaign.tourOptions?.steps ?? [];
+
+    const tourSteps = steps.map((step) => ({
       step: step.step,
       title: step.title,
       intro: step.intro,
@@ -224,18 +234,18 @@ export class CampaignManager {
       position: step.position,
       scrollTo: step.scrollTo,
       disableInteraction: step.disableInteraction,
-      tooltipClass: step.customClass,
+      tooltipClass: step.tooltipClass,
     }));
 
     // Create and configure tour
     const tour = new Tour();
     tour.setOptions({
-      ...campaign.tour,
+      ...campaign.tourOptions,
       steps: tourSteps,
     });
 
     // Set up campaign-specific callbacks
-    this.setupCampaignCallbacks(tour, campaign, context);
+    this.setupCampaignCallbacks(tour, campaign);
 
     // Store active tour
     this.activeTours.set(campaignId, tour);
@@ -266,16 +276,24 @@ export class CampaignManager {
     });
 
     // Custom step callbacks for campaign features
-    tour.onAfterChange((element, stepIndex) => {
-      const campaignStep = campaign.tour.steps[stepIndex];
+    tour.onAfterChange((element) => {
+      const steps = campaign.tourOptions?.steps ?? [];
+      const stepIndex = steps.findIndex((s) => {
+        if (!s.element) return false;
+        if (typeof s.element === "string") {
+          return document.querySelector(s.element) === element;
+        }
+        return s.element === element;
+      });
+      const campaignStep = steps[stepIndex];
       if (campaignStep) {
         this.handleStepActions(campaignStep, element);
-        
-        // Auto advance if configured
-        if (campaignStep.autoAdvance) {
+
+        const autoAdvance = (campaignStep as any).autoAdvance;
+        if (autoAdvance) {
           setTimeout(() => {
             tour.nextStep();
-          }, campaignStep.autoAdvance);
+          }, autoAdvance);
         }
       }
     });
@@ -307,7 +325,9 @@ export class CampaignManager {
               break;
             case "click":
               if (action.selector) {
-                const targetElement = document.querySelector(action.selector) as HTMLElement;
+                const targetElement = document.querySelector(
+                  action.selector
+                ) as HTMLElement;
                 if (targetElement) {
                   targetElement.click();
                 }
@@ -315,7 +335,9 @@ export class CampaignManager {
               break;
             case "focus":
               if (action.selector) {
-                const targetElement = document.querySelector(action.selector) as HTMLElement;
+                const targetElement = document.querySelector(
+                  action.selector
+                ) as HTMLElement;
                 if (targetElement) {
                   targetElement.focus();
                 }
@@ -340,9 +362,13 @@ export class CampaignManager {
    */
   private async setupCampaignTriggers(campaign: Campaign): Promise<void> {
     for (const trigger of campaign.triggers) {
-      await this.triggerDetector.addTrigger(campaign.id, trigger, (triggeredCampaignId, triggeredTrigger) => {
-        this.executeCampaign(triggeredCampaignId, triggeredTrigger);
-      });
+      await this.triggerDetector.addTrigger(
+        campaign.id,
+        trigger,
+        (triggeredCampaignId, triggeredTrigger) => {
+          this.executeCampaign(triggeredCampaignId, triggeredTrigger);
+        }
+      );
     }
   }
 
@@ -350,9 +376,10 @@ export class CampaignManager {
    * Stop all active campaigns
    */
   async stopAllCampaigns(): Promise<void> {
-    for (const [campaignId, tour] of this.activeTours) {
+    this.activeTours.forEach(async (tour) => {
       await tour.exit();
-    }
+    });
+
     this.activeTours.clear();
   }
 
@@ -383,7 +410,9 @@ export function getCampaignManager(): CampaignManager {
 /**
  * Initialize campaigns from configuration
  */
-export async function initializeCampaigns(config: CampaignCollection | Campaign[] | string): Promise<CampaignManager> {
+export async function initializeCampaigns(
+  config: CampaignCollection | Campaign[] | string
+): Promise<CampaignManager> {
   const manager = getCampaignManager();
   await manager.initialize();
 

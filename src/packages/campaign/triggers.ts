@@ -18,13 +18,19 @@ import DOMEvent from "../../util/DOMEvent";
 /**
  * Trigger callback function type
  */
-export type TriggerCallback = (campaignId: string, trigger: CampaignTrigger) => void;
+export type TriggerCallback = (
+  campaignId: string,
+  trigger: CampaignTrigger
+) => void;
 
 /**
  * Trigger detector class - handles all campaign trigger detection
  */
 export class TriggerDetector {
-  private triggers: Map<string, { trigger: CampaignTrigger; callback: TriggerCallback }[]> = new Map();
+  private triggers: Map<
+    string,
+    { trigger: CampaignTrigger; callback: TriggerCallback }[]
+  > = new Map();
   private eventListeners: Map<string, () => void> = new Map();
   private timers: Map<string, number> = new Map();
   private isInitialized = false;
@@ -42,7 +48,11 @@ export class TriggerDetector {
   /**
    * Add a trigger for a campaign
    */
-  async addTrigger(campaignId: string, trigger: CampaignTrigger, callback: TriggerCallback): Promise<void> {
+  async addTrigger(
+    campaignId: string,
+    trigger: CampaignTrigger,
+    callback: TriggerCallback
+  ): Promise<void> {
     if (!this.triggers.has(campaignId)) {
       this.triggers.set(campaignId, []);
     }
@@ -67,7 +77,11 @@ export class TriggerDetector {
   /**
    * Setup a specific trigger
    */
-  private async setupTrigger(campaignId: string, trigger: CampaignTrigger, callback: TriggerCallback): Promise<void> {
+  private async setupTrigger(
+    campaignId: string,
+    trigger: CampaignTrigger,
+    callback: TriggerCallback
+  ): Promise<void> {
     switch (trigger.type) {
       case "first_visit":
         this.setupFirstVisitTrigger(campaignId, trigger, callback);
@@ -164,25 +178,35 @@ export class TriggerDetector {
    */
   private setupGlobalTriggers(): void {
     // Page visibility change for idle detection
-    DOMEvent.on(document, "visibilitychange" as any, () => {
-      if (document.hidden) {
-        this.pauseIdleTimers();
-      } else {
-        this.resumeIdleTimers();
-      }
-    }, false);
+    DOMEvent.on(
+      document,
+      "visibilitychange" as any,
+      () => {
+        if (document.hidden) {
+          this.pauseIdleTimers();
+        } else {
+          this.resumeIdleTimers();
+        }
+      },
+      false
+    );
   }
 
   /**
    * Setup first visit trigger
    */
-  private setupFirstVisitTrigger(campaignId: string, trigger: CampaignTrigger, callback: TriggerCallback): void {
-    const cookieName = trigger.cookieName || `introjs-first-visit-${campaignId}`;
+  private setupFirstVisitTrigger(
+    campaignId: string,
+    trigger: CampaignTrigger,
+    callback: TriggerCallback
+  ): void {
+    const cookieName =
+      trigger.cookieName || `introjs-first-visit-${campaignId}`;
     const hasVisited = localStorage.getItem(cookieName);
 
     if (!hasVisited) {
       localStorage.setItem(cookieName, Date.now().toString());
-      
+
       if (trigger.delay) {
         setTimeout(() => callback(campaignId, trigger), trigger.delay);
       } else {
@@ -194,7 +218,11 @@ export class TriggerDetector {
   /**
    * Setup element click trigger
    */
-  private setupElementClickTrigger(campaignId: string, trigger: CampaignTrigger & { selector: string }, callback: TriggerCallback): void {
+  private setupElementClickTrigger(
+    campaignId: string,
+    trigger: CampaignTrigger & { selector: string },
+    callback: TriggerCallback
+  ): void {
     const handler = (event: Event) => {
       const target = event.target as Element;
       if (target.matches(trigger.selector)) {
@@ -215,7 +243,11 @@ export class TriggerDetector {
   /**
    * Setup element hover trigger
    */
-  private setupElementHoverTrigger(campaignId: string, trigger: CampaignTrigger & { selector: string }, callback: TriggerCallback): void {
+  private setupElementHoverTrigger(
+    campaignId: string,
+    trigger: CampaignTrigger & { selector: string },
+    callback: TriggerCallback
+  ): void {
     const handler = (event: Event) => {
       const target = event.target as Element;
       if (target.matches(trigger.selector)) {
@@ -236,14 +268,18 @@ export class TriggerDetector {
   /**
    * Setup idle user trigger
    */
-  private setupIdleUserTrigger(campaignId: string, trigger: CampaignTrigger & { idleTime: number }, callback: TriggerCallback): void {
+  private setupIdleUserTrigger(
+    campaignId: string,
+    trigger: CampaignTrigger & { idleTime: number },
+    callback: TriggerCallback
+  ): void {
     const idleTime = trigger.idleTime;
     let idleTimer: number;
     let isIdle = false;
 
     const resetTimer = () => {
       if (isIdle) return;
-      
+
       clearTimeout(idleTimer);
       idleTimer = window.setTimeout(() => {
         isIdle = true;
@@ -251,8 +287,14 @@ export class TriggerDetector {
       }, idleTime);
     };
 
-    const events = ["mousedown", "mousemove", "keypress", "scroll", "touchstart"];
-    const handlers = events.map(event => {
+    const events = [
+      "mousedown",
+      "mousemove",
+      "keypress",
+      "scroll",
+      "touchstart",
+    ];
+    const handlers = events.map((event) => {
       const handler = resetTimer;
       DOMEvent.on(document, event as any, handler, true);
       return () => DOMEvent.off(document, event as any, handler, true);
@@ -262,14 +304,18 @@ export class TriggerDetector {
 
     this.eventListeners.set(`${campaignId}-idle`, () => {
       clearTimeout(idleTimer);
-      handlers.forEach(cleanup => cleanup());
+      handlers.forEach((cleanup) => cleanup());
     });
   }
 
   /**
    * Setup page load trigger
    */
-  private setupPageLoadTrigger(campaignId: string, trigger: CampaignTrigger, callback: TriggerCallback): void {
+  private setupPageLoadTrigger(
+    campaignId: string,
+    trigger: CampaignTrigger,
+    callback: TriggerCallback
+  ): void {
     if (document.readyState === "complete") {
       if (trigger.delay) {
         setTimeout(() => callback(campaignId, trigger), trigger.delay);
@@ -295,14 +341,19 @@ export class TriggerDetector {
   /**
    * Setup scroll to element trigger
    */
-  private setupScrollToElementTrigger(campaignId: string, trigger: CampaignTrigger & { selector: string; threshold?: number }, callback: TriggerCallback): void {
+  private setupScrollToElementTrigger(
+    campaignId: string,
+    trigger: CampaignTrigger & { selector: string; threshold?: number },
+    callback: TriggerCallback
+  ): void {
     const handler = () => {
       const element = document.querySelector(trigger.selector);
       if (element) {
         const rect = element.getBoundingClientRect();
         const threshold = trigger.threshold || 0.5;
         const elementHeight = rect.height;
-        const visibleHeight = Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0);
+        const visibleHeight =
+          Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0);
         const visibilityRatio = visibleHeight / elementHeight;
 
         if (visibilityRatio >= threshold) {
@@ -321,7 +372,11 @@ export class TriggerDetector {
   /**
    * Setup time on page trigger
    */
-  private setupTimeOnPageTrigger(campaignId: string, trigger: CampaignTrigger & { duration: number }, callback: TriggerCallback): void {
+  private setupTimeOnPageTrigger(
+    campaignId: string,
+    trigger: CampaignTrigger & { duration: number },
+    callback: TriggerCallback
+  ): void {
     const timer = window.setTimeout(() => {
       callback(campaignId, trigger);
     }, trigger.duration);
@@ -332,12 +387,16 @@ export class TriggerDetector {
   /**
    * Setup exit intent trigger
    */
-  private setupExitIntentTrigger(campaignId: string, trigger: CampaignTrigger, callback: TriggerCallback): void {
+  private setupExitIntentTrigger(
+    campaignId: string,
+    trigger: CampaignTrigger,
+    callback: TriggerCallback
+  ): void {
     let hasTriggered = false;
 
     const handler = (event: MouseEvent) => {
       if (hasTriggered) return;
-      
+
       if (event.clientY <= 0) {
         hasTriggered = true;
         callback(campaignId, trigger);
@@ -353,9 +412,14 @@ export class TriggerDetector {
   /**
    * Setup form interaction trigger
    */
-  private setupFormInteractionTrigger(campaignId: string, trigger: CampaignTrigger & { selector?: string }, callback: TriggerCallback): void {
-    const selector = trigger.selector || "form input, form textarea, form select";
-    
+  private setupFormInteractionTrigger(
+    campaignId: string,
+    trigger: CampaignTrigger & { selector?: string },
+    callback: TriggerCallback
+  ): void {
+    const selector =
+      trigger.selector || "form input, form textarea, form select";
+
     const handler = (event: Event) => {
       const target = event.target as Element;
       if (target.matches(selector)) {
@@ -372,7 +436,11 @@ export class TriggerDetector {
   /**
    * Setup custom event trigger
    */
-  private setupCustomEventTrigger(campaignId: string, trigger: CampaignTrigger & { eventName: string }, callback: TriggerCallback): void {
+  private setupCustomEventTrigger(
+    campaignId: string,
+    trigger: CampaignTrigger & { eventName: string },
+    callback: TriggerCallback
+  ): void {
     const handler = () => {
       callback(campaignId, trigger);
     };
@@ -386,7 +454,11 @@ export class TriggerDetector {
   /**
    * Setup URL match trigger
    */
-  private setupUrlMatchTrigger(campaignId: string, trigger: CampaignTrigger & { pattern: string; matchType?: string }, callback: TriggerCallback): void {
+  private setupUrlMatchTrigger(
+    campaignId: string,
+    trigger: CampaignTrigger & { pattern: string; matchType?: string },
+    callback: TriggerCallback
+  ): void {
     const currentUrl = window.location.href;
     let matches = false;
 
@@ -415,9 +487,13 @@ export class TriggerDetector {
   /**
    * Setup device type trigger
    */
-  private setupDeviceTypeTrigger(campaignId: string, trigger: CampaignTrigger & { device: string }, callback: TriggerCallback): void {
+  private setupDeviceTypeTrigger(
+    campaignId: string,
+    trigger: CampaignTrigger & { device: string },
+    callback: TriggerCallback
+  ): void {
     const currentDevice = this.detectDeviceType();
-    
+
     if (currentDevice === trigger.device) {
       if (trigger.delay) {
         setTimeout(() => callback(campaignId, trigger), trigger.delay);
@@ -430,7 +506,11 @@ export class TriggerDetector {
   /**
    * Setup returning user trigger
    */
-  private setupReturningUserTrigger(campaignId: string, trigger: CampaignTrigger, callback: TriggerCallback): void {
+  private setupReturningUserTrigger(
+    campaignId: string,
+    trigger: CampaignTrigger,
+    callback: TriggerCallback
+  ): void {
     const cookieName = trigger.cookieName || "introjs-returning-user";
     const hasVisited = localStorage.getItem(cookieName);
 
@@ -448,10 +528,15 @@ export class TriggerDetector {
   /**
    * Setup session count trigger
    */
-  private setupSessionCountTrigger(campaignId: string, trigger: CampaignTrigger & { count: number; operator?: string }, callback: TriggerCallback): void {
+  private setupSessionCountTrigger(
+    campaignId: string,
+    trigger: CampaignTrigger & { count: number; operator?: string },
+    callback: TriggerCallback
+  ): void {
     const cookieName = trigger.cookieName || "introjs-session-count";
-    const sessionCount = parseInt(localStorage.getItem(cookieName) || "0", 10) + 1;
-    
+    const sessionCount =
+      parseInt(localStorage.getItem(cookieName) || "0", 10) + 1;
+
     localStorage.setItem(cookieName, sessionCount.toString());
 
     let shouldTrigger = false;
@@ -482,10 +567,17 @@ export class TriggerDetector {
   /**
    * Setup scroll depth trigger
    */
-  private setupScrollDepthTrigger(campaignId: string, trigger: CampaignTrigger & { percentage: number }, callback: TriggerCallback): void {
+  private setupScrollDepthTrigger(
+    campaignId: string,
+    trigger: CampaignTrigger & { percentage: number },
+    callback: TriggerCallback
+  ): void {
     const handler = () => {
-      const scrollPercent = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
-      
+      const scrollPercent =
+        (window.scrollY /
+          (document.documentElement.scrollHeight - window.innerHeight)) *
+        100;
+
       if (scrollPercent >= trigger.percentage) {
         callback(campaignId, trigger);
         DOMEvent.off(window, "scroll", handler, false);
@@ -501,14 +593,19 @@ export class TriggerDetector {
   /**
    * Setup element visible trigger
    */
-  private setupElementVisibleTrigger(campaignId: string, trigger: CampaignTrigger & { selector: string; threshold?: number }, callback: TriggerCallback): void {
+  private setupElementVisibleTrigger(
+    campaignId: string,
+    trigger: CampaignTrigger & { selector: string; threshold?: number },
+    callback: TriggerCallback
+  ): void {
     const checkVisibility = () => {
       const element = document.querySelector(trigger.selector);
       if (element) {
         const rect = element.getBoundingClientRect();
         const threshold = trigger.threshold || 0.5;
         const elementHeight = rect.height;
-        const visibleHeight = Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0);
+        const visibleHeight =
+          Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0);
         const visibilityRatio = visibleHeight / elementHeight;
 
         if (visibilityRatio >= threshold) {
@@ -527,7 +624,7 @@ export class TriggerDetector {
     // Listen for scroll and resize
     DOMEvent.on(window, "scroll", handler, false);
     DOMEvent.on(window, "resize" as any, handler, false);
-    
+
     this.eventListeners.set(`${campaignId}-element-visible`, () => {
       DOMEvent.off(window, "scroll", handler, false);
       DOMEvent.off(window, "resize" as any, handler, false);
@@ -541,7 +638,12 @@ export class TriggerDetector {
     const width = window.innerWidth;
     const userAgent = navigator.userAgent.toLowerCase();
 
-    if (width <= 768 || /mobile|android|iphone|ipod|blackberry|iemobile|opera mini/i.test(userAgent)) {
+    if (
+      width <= 768 ||
+      /mobile|android|iphone|ipod|blackberry|iemobile|opera mini/i.test(
+        userAgent
+      )
+    ) {
       return "mobile";
     } else if (width <= 1024 || /tablet|ipad/i.test(userAgent)) {
       return "tablet";
@@ -569,7 +671,7 @@ export class TriggerDetector {
    */
   private cleanupTrigger(campaignId: string, trigger: CampaignTrigger): void {
     const triggerKey = `${campaignId}-${trigger.type}`;
-    
+
     // Clean up event listeners
     const cleanup = this.eventListeners.get(triggerKey);
     if (cleanup) {
@@ -590,11 +692,11 @@ export class TriggerDetector {
    */
   destroy(): void {
     // Clean up all event listeners
-    this.eventListeners.forEach(cleanup => cleanup());
+    this.eventListeners.forEach((cleanup) => cleanup());
     this.eventListeners.clear();
 
     // Clean up all timers
-    this.timers.forEach(timer => clearTimeout(timer));
+    this.timers.forEach((timer) => clearTimeout(timer));
     this.timers.clear();
 
     this.triggers.clear();
