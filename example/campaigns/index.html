@@ -55,7 +55,9 @@
   </div>
   
   <div class="demo-buttons">
-    <button onclick="reloadCampaign()">Reload Campaign from JSON</button>
+    <button onclick="reloadCampaign()">Reload First Visit Campaign</button>
+    <button onclick="loadIdleUserCampaign()">Load Idle User Campaign</button>
+    <button onclick="testIdleDirect()">Test Idle Direct (No JSON)</button>
     <button onclick="manualTrigger()">Manually Trigger Campaign</button>
   </div>
 
@@ -108,6 +110,74 @@
         console.error("Failed to load campaign:", error);
         updateStatus('Failed to load campaign: ' + error.message, true);
         alert("Failed to load campaign: " + error.message);
+      }
+    }
+
+    // Load idle user engagement campaign from JSON file
+    async function loadIdleUserCampaign() {
+      try {
+        updateStatus('Loading idle user engagement campaign...');
+        
+        console.log('[Campaign] Starting to load idle user engagement campaign...');
+        
+        // Initialize campaigns from JSON file
+        await introJs.initializeCampaigns("./campaigns/idle-user-engagement.json");
+        
+        console.log('[Campaign] Campaign loaded successfully. Idle timer should start now.');
+        console.log('[Campaign] Idle trigger will fire after 1 second of no mouse/keyboard activity.');
+        
+        // Update status once without further DOM updates
+        updateStatus('✅ Idle user campaign loaded! Now, stop all activity for 1 second... (check console for logs)');
+        
+      } catch (error) {
+        console.error('[Campaign] Failed to load idle user campaign:', error);
+        updateStatus('Failed to load idle user campaign: ' + error.message, true);
+        alert("Failed to load idle user campaign: " + error.message);
+      }
+    }
+
+    // Test idle campaign directly (no JSON loading)
+    async function testIdleDirect() {
+      try {
+        updateStatus('Creating idle campaign directly...');
+        
+        console.log('[Test] Creating idle campaign programmatically...');
+        
+        const manager = introJs.getCampaignManager();
+        await manager.initialize();
+        
+        // Add idle campaign directly
+        await manager.addCampaign({
+          id: 'test-idle',
+          name: 'Test Idle Campaign',
+          active: true,
+          mode: 'tour',
+          triggers: [{
+            type: 'idle_user',
+            idleTime: 5000
+          }],
+          tourOptions: {
+            steps: [
+              {
+                element: '#step1',
+                intro: '🎉 Idle trigger worked! You were idle for 3 seconds.',
+                title: 'Idle Detected!'
+              },
+              {
+                element: '#step2',
+                intro: 'This campaign was created programmatically without JSON.',
+                title: 'Direct Creation'
+              }
+            ]
+          }
+        });
+        
+        console.log('[Test] Idle campaign created. Stop all activity for 3 seconds...');
+        updateStatus('✅ Test idle campaign created! Stop all activity for 3 seconds...');
+        
+      } catch (error) {
+        console.error('[Test] Failed:', error);
+        updateStatus('Failed: ' + error.message, true);
       }
     }
 
