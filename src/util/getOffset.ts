@@ -1,6 +1,19 @@
 import getPropValue from "./getPropValue";
 import isFixed from "./isFixed";
 
+/**
+ * Represents the position and dimensions of an element
+ * @property width - Element width in pixels
+ * @property height - Element height in pixels
+ * @property left - Left position relative to container
+ * @property right - Right position relative to container
+ * @property top - Top position relative to container
+ * @property bottom - Bottom position relative to container
+ * @property absoluteTop - Top position relative to document
+ * @property absoluteLeft - Left position relative to document
+ * @property absoluteRight - Right position relative to document
+ * @property absoluteBottom - Bottom position relative to document
+ */
 export type Offset = {
   width: number;
   height: number;
@@ -15,85 +28,175 @@ export type Offset = {
 };
 
 /**
- * Returns all scrollable parents up to document root
+ * Checks if an element or its parent has scrollable overflow
+ * @param style - Computed style of the element
+ * @returns True if element is scrollable
  */
-function getScrollParents(el: HTMLElement): HTMLElement[] {
-  const parents: HTMLElement[] = [];
-  let parent = el.parentElement;
-  while (parent) {
-    const style = getComputedStyle(parent);
-    if (
-      /auto|scroll/.test(style.overflow + style.overflowY + style.overflowX)
-    ) {
-      parents.push(parent);
-    }
-    parent = parent.parentElement;
-  }
-  return parents;
+function isScrollable(style: CSSStyleDeclaration): boolean {
+  const overflowValues = style.overflow + style.overflowY + style.overflowX;
+  return /auto|scroll/.test(overflowValues);
 }
 
 /**
- * Returns element offset relative to a container or document.
- * Handles scrollable containers, fixed/relative positioning and nested scrolls.
+ * Collects all scrollable parent elements up to the document root
+ * @param element - Starting element to search from
+ * @returns Array of scrollable parent elements
+ */
+function getScrollParents(element: HTMLElement): HTMLElement[] {
+  const scrollableParents: HTMLElement[] = [];
+  let currentParent = element.parentElement;
+
+  while (currentParent) {
+    const style = getComputedStyle(currentParent);
+    if (isScrollable(style)) {
+      scrollableParents.push(currentParent);
+    }
+    currentParent = currentParent.parentElement;
+  }
+
+  return scrollableParents;
+}
+
+/**
+ * Calculates position for fixed-position elements
+ * Fixed elements are positioned relative to the viewport
+ * @param elementRect - Element's bounding rectangle
+ * @returns Top and left positions
+ */
+function calculateFixedPosition(elementRect: DOMRect): {
+  top: number;
+  left: number;
+} {
+  return {
+    top: elementRect.top,
+    left: elementRect.left,
+  };
+}
+
+/**
+ * Calculates position for elements inside a relative/sticky container
+ * Accounts for scroll offsets of all scrollable parents
+ * @param element - Target element
+ * @param elementRect - Element's bounding rectangle
+ * @param containerRect - Container's bounding rectangle
+ * @param container - Container element
+ * @returns Top and left positions
+ */
+function calculateRelativePosition(
+  element: HTMLElement,
+  elementRect: DOMRect,
+  containerRect: DOMRect,
+  container: HTMLElement
+): { top: number; left: number } {
+  let top = elementRect.top - containerRect.top;
+  let left = elementRect.left - containerRect.left;
+
+  // Accumulate scroll offsets from all scrollable parents up to the container
+  const scrollableParents = getScrollParents(element);
+  for (const scrollParent of scrollableParents) {
+    top += scrollParent.scrollTop;
+    left += scrollParent.scrollLeft;
+    // Stop when we reach the relative container
+    if (scrollParent === container) break;
+  }
+
+  return { top, left };
+}
+
+/**
+ * Calculates position for elements in normal document flow
+ * Uses page scroll offsets for absolute positioning
+ * @param elementRect - Element's bounding rectangle
+ * @returns Top and left positions
+ */
+function calculateDocumentPosition(elementRect: DOMRect): {
+  top: number;
+  left: number;
+} {
+  const documentElement = document.documentElement;
+  const body = document.body;
+
+  const scrollTop =
+    window.pageYOffset || documentElement.scrollTop || body.scrollTop;
+  const scrollLeft =
+    window.pageXOffset || documentElement.scrollLeft || body.scrollLeft;
+
+  return {
+    top: elementRect.top + scrollTop,
+    left: elementRect.left + scrollLeft,
+  };
+}
+
+/**
+ * Calculates comprehensive offset information for an element
+ *
+ * Handles three positioning scenarios:
+ * 1. Fixed elements - Positioned relative to viewport
+ * 2. Relative/Sticky containers - Positioned within container with scroll offset handling
+ * 3. Normal document flow - Positioned relative to document with page scroll
+ *
+ * @param element - Target element to calculate offset for
+ * @param relativeContainer - Optional container to calculate position relative to (defaults to document)
+ * @returns Complete offset information including position, dimensions, and absolute coordinates
+ *
+ * @example
+ * ```typescript
+ * const offset = getOffset(myElement);
+ * console.log(offset.top, offset.left);
+ *
+ * // With custom container
+ * const relativeOffset = getOffset(myElement, containerElement);
+ * ```
  */
 export default function getOffset(
   element: HTMLElement,
-  relativeEl?: HTMLElement
+  relativeContainer?: HTMLElement
 ): Offset {
-  const docEl = document.documentElement;
+  const documentElement = document.documentElement;
   const body = document.body;
-  relativeEl = relativeEl || docEl || body;
+  const container = relativeContainer || documentElement || body;
 
-  const rect = element.getBoundingClientRect();
-  const relRect = relativeEl.getBoundingClientRect();
-  const relPos = getPropValue(relativeEl, "position");
+  const elementRect = element.getBoundingClientRect();
+  const containerRect = container.getBoundingClientRect();
+  const containerPosition = getPropValue(container, "position");
 
-  // Default positions
-  let top = 0;
-  let left = 0;
+  let top: number;
+  let left: number;
 
-  // Case 1: Fixed elements → use viewport-relative rect directly
+  // Determine positioning strategy based on element and container properties
   if (isFixed(element)) {
-    top = rect.top;
-    left = rect.left;
-  }
-
-  // Case 2: Relative or sticky container → position inside the container
-  else if (
-    relativeEl.tagName.toLowerCase() !== "body" &&
-    (relPos === "relative" || relPos === "sticky")
+    // Case 1: Fixed positioning - use viewport coordinates
+    ({ top, left } = calculateFixedPosition(elementRect));
+  } else if (
+    container.tagName.toLowerCase() !== "body" &&
+    (containerPosition === "relative" || containerPosition === "sticky")
   ) {
-    top = rect.top - relRect.top;
-    left = rect.left - relRect.left;
-
-    // Add scroll offsets from parents until relativeEl
-    const scrollParents = getScrollParents(element);
-    for (const sp of scrollParents) {
-      top += sp.scrollTop;
-      left += sp.scrollLeft;
-      if (sp === relativeEl) break;
-    }
+    // Case 2: Relative/sticky container - calculate position within container
+    ({ top, left } = calculateRelativePosition(
+      element,
+      elementRect,
+      containerRect,
+      container
+    ));
+  } else {
+    // Case 3: Normal document flow - use document coordinates
+    ({ top, left } = calculateDocumentPosition(elementRect));
   }
 
-  // Case 3: Normal document flow
-  else {
-    const scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop;
-    const scrollLeft =
-      window.pageXOffset || docEl.scrollLeft || body.scrollLeft;
-    top = rect.top + scrollTop;
-    left = rect.left + scrollLeft;
-  }
-
+  // Return complete offset information
   return {
+    // Relative positions
     top,
     left,
-    width: rect.width,
-    height: rect.height,
-    bottom: top + rect.height,
-    right: left + rect.width,
-    absoluteTop: rect.top + window.pageYOffset,
-    absoluteLeft: rect.left + window.pageXOffset,
-    absoluteBottom: rect.bottom + window.pageYOffset,
-    absoluteRight: rect.right + window.pageXOffset,
+    width: elementRect.width,
+    height: elementRect.height,
+    bottom: top + elementRect.height,
+    right: left + elementRect.width,
+
+    // Absolute positions (relative to document)
+    absoluteTop: elementRect.top + window.pageYOffset,
+    absoluteLeft: elementRect.left + window.pageXOffset,
+    absoluteBottom: elementRect.bottom + window.pageYOffset,
+    absoluteRight: elementRect.right + window.pageXOffset,
   };
 }

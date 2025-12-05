@@ -82,38 +82,6 @@ export const TooltipArrow = (props: {
 };
 
 /**
- * Set tooltip right so it doesn't go off the left side of the window
- *
- * @return boolean true, if tooltipLayerStyleRight is ok. false, otherwise.
- */
-function checkLeft(
-  targetOffset: {
-    top: number;
-    left: number;
-    width: number;
-    height: number;
-  },
-  tooltipLayerStyleRight: number,
-  tooltipWidth: number,
-  tooltipLeft: State<string>,
-  tooltipRight: State<string>
-): boolean {
-  if (
-    targetOffset.left +
-      targetOffset.width -
-      tooltipLayerStyleRight -
-      tooltipWidth <
-    0
-  ) {
-    // off the left side of the window
-    tooltipLeft.val = `-${targetOffset.left}px`;
-    return false;
-  }
-  tooltipRight.val = `${tooltipLayerStyleRight}px`;
-  return true;
-}
-
-/**
  * Set tooltip left so it doesn't go off the right side of the window
  *
  * @return boolean true, if tooltipLayerStyleLeft is ok.  false, otherwise.
@@ -175,41 +143,50 @@ const alignTooltip = (
 
   switch (position) {
     case "top-right-aligned":
+      // Align tooltip's right edge with element's right edge
       let tooltipLayerStyleRight = 0;
-      checkLeft(
-        targetOffset,
-        tooltipLayerStyleRight,
-        tooltipWidth,
-        tooltipLeft,
-        tooltipRight
-      );
+
+      // Check if it would go off left edge of viewport
+      if (targetOffset.left + targetOffset.width - tooltipWidth < 0) {
+        // Align to left edge of viewport instead
+        tooltipLeft.val = `-${targetOffset.left}px`;
+      } else {
+        // Use right alignment
+        tooltipRight.val = `${tooltipLayerStyleRight}px`;
+      }
+
       tooltipBottom.val = `${targetOffset.height + 20}px`;
       break;
 
     case "top-middle-aligned":
+      // Center the tooltip horizontally relative to the target element
+      tooltipLayerStyleLeftRight = targetOffset.width / 2 - tooltipWidth / 2;
+
       // a fix for middle aligned hints
       if (hintMode) {
         tooltipLayerStyleLeftRight += 5;
       }
 
-      if (
-        checkLeft(
-          targetOffset,
-          tooltipLayerStyleLeftRight,
-          tooltipWidth,
-          tooltipLeft,
-          tooltipRight
-        )
-      ) {
-        tooltipRight.val = undefined;
-        checkRight(
-          targetOffset,
-          windowSize,
-          tooltipLayerStyleLeftRight,
-          tooltipWidth,
-          tooltipLeft
-        );
+      // Check if centered position would overflow viewport
+      const topMiddleOverflowLeft =
+        targetOffset.left + tooltipLayerStyleLeftRight < 0;
+      const topMiddleOverflowRight =
+        targetOffset.left + tooltipLayerStyleLeftRight + tooltipWidth >
+        windowSize.width;
+
+      if (topMiddleOverflowLeft) {
+        // Align to left edge of viewport
+        tooltipLeft.val = `-${targetOffset.left}px`;
+      } else if (topMiddleOverflowRight) {
+        // Align to right edge of viewport
+        tooltipLeft.val = `${
+          windowSize.width - tooltipWidth - targetOffset.left
+        }px`;
+      } else {
+        // Use centered position
+        tooltipLeft.val = `${tooltipLayerStyleLeftRight}px`;
       }
+
       tooltipBottom.val = `${targetOffset.height + 20}px`;
       break;
 
@@ -258,46 +235,66 @@ const alignTooltip = (
 
       break;
     case "bottom-right-aligned":
+      // Align tooltip's right edge with element's right edge
       tooltipLayerStyleRight = 0;
-      checkLeft(
-        targetOffset,
-        tooltipLayerStyleRight,
-        tooltipWidth,
-        tooltipLeft,
-        tooltipRight
-      );
+
+      // Check if it would go off left edge of viewport
+      if (targetOffset.left + targetOffset.width - tooltipWidth < 0) {
+        // Align to left edge of viewport instead
+        tooltipLeft.val = `-${targetOffset.left}px`;
+      } else {
+        // Use right alignment
+        tooltipRight.val = `${tooltipLayerStyleRight}px`;
+      }
+
       tooltipTop.val = `${targetOffset.height + 20}px`;
       break;
 
     case "bottom-middle-aligned":
+      // Center the tooltip horizontally relative to the target element
+      tooltipLayerStyleLeftRight = targetOffset.width / 2 - tooltipWidth / 2;
+
       // a fix for middle aligned hints
       if (hintMode) {
         tooltipLayerStyleLeftRight += 5;
       }
 
-      if (
-        checkLeft(
-          targetOffset,
-          tooltipLayerStyleLeftRight,
-          tooltipWidth,
-          tooltipLeft,
-          tooltipRight
-        )
-      ) {
-        tooltipRight.val = "";
-        checkRight(
-          targetOffset,
-          windowSize,
-          tooltipLayerStyleLeftRight,
-          tooltipWidth,
-          tooltipLeft
-        );
+      // Check if centered position would overflow viewport
+      const bottomMiddleOverflowLeft =
+        targetOffset.left + tooltipLayerStyleLeftRight < 0;
+      const bottomMiddleOverflowRight =
+        targetOffset.left + tooltipLayerStyleLeftRight + tooltipWidth >
+        windowSize.width;
+
+      if (bottomMiddleOverflowLeft) {
+        // Align to left edge of viewport
+        tooltipLeft.val = `-${targetOffset.left}px`;
+      } else if (bottomMiddleOverflowRight) {
+        // Align to right edge of viewport
+        tooltipLeft.val = `${
+          windowSize.width - tooltipWidth - targetOffset.left
+        }px`;
+      } else {
+        // Use centered position
+        tooltipLeft.val = `${tooltipLayerStyleLeftRight}px`;
       }
+
       tooltipTop.val = `${targetOffset.height + 20}px`;
       break;
 
-    // case 'bottom-left-aligned':
-    // Bottom-left-aligned is the same as the default bottom
+    case "bottom-left-aligned":
+      // Align left edge of tooltip with left edge of element
+      const bottomLeftStyleLeft = hintMode ? 0 : 0;
+      checkRight(
+        targetOffset,
+        windowSize,
+        bottomLeftStyleLeft,
+        tooltipWidth,
+        tooltipLeft
+      );
+      tooltipTop.val = `${targetOffset.height + 20}px`;
+      break;
+
     // case 'bottom':
     // Bottom going to follow the default behavior
     default:
