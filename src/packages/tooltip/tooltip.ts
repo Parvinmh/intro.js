@@ -149,7 +149,7 @@ const alignTooltip = (
       // Check if it would go off left edge of viewport
       if (targetOffset.left + targetOffset.width - tooltipWidth < 0) {
         // Align to left edge of viewport instead
-        tooltipLeft.val = `-${targetOffset.left}px`;
+        tooltipLeft.val = `0px`;
       } else {
         // Use right alignment
         tooltipRight.val = `${tooltipLayerStyleRight}px`;
@@ -176,7 +176,7 @@ const alignTooltip = (
 
       if (topMiddleOverflowLeft) {
         // Align to left edge of viewport
-        tooltipLeft.val = `-${targetOffset.left}px`;
+        tooltipLeft.val = `0px`;
       } else if (topMiddleOverflowRight) {
         // Align to right edge of viewport
         tooltipLeft.val = `${
@@ -241,7 +241,7 @@ const alignTooltip = (
       // Check if it would go off left edge of viewport
       if (targetOffset.left + targetOffset.width - tooltipWidth < 0) {
         // Align to left edge of viewport instead
-        tooltipLeft.val = `-${targetOffset.left}px`;
+        tooltipLeft.val = `0px`;
       } else {
         // Use right alignment
         tooltipRight.val = `${tooltipLayerStyleRight}px`;
@@ -268,7 +268,7 @@ const alignTooltip = (
 
       if (bottomMiddleOverflowLeft) {
         // Align to left edge of viewport
-        tooltipLeft.val = `-${targetOffset.left}px`;
+        tooltipLeft.val = `0px`;
       } else if (bottomMiddleOverflowRight) {
         // Align to right edge of viewport
         tooltipLeft.val = `${
