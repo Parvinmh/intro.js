@@ -33,8 +33,6 @@ export const TooltipArrow = (props: {
         break;
       case "right":
         if (props.tooltipBottomOverflow.val) {
-          // In this case, right would have fallen below the bottom of the screen.
-          // Modify so that the bottom of the tooltip connects with the target
           classNames.push("left-bottom");
         } else {
           classNames.push("left");
@@ -42,8 +40,6 @@ export const TooltipArrow = (props: {
         break;
       case "left":
         if (props.tooltipBottomOverflow.val) {
-          // In this case, left would have fallen below the bottom of the screen.
-          // Modify so that the bottom of the tooltip connects with the target
           classNames.push("right-bottom");
         } else {
           classNames.push("right");
@@ -82,8 +78,6 @@ export const TooltipArrow = (props: {
 };
 
 /**
- * Set tooltip left so it doesn't go off the right side of the window
- *
  * @return boolean true, if tooltipLayerStyleLeft is ok.  false, otherwise.
  */
 function checkRight(
@@ -101,14 +95,21 @@ function checkRight(
   tooltipWidth: number,
   tooltipLeft: State<string>
 ): boolean {
+  // check left edge
+  if (targetOffset.left + tooltipLayerStyleLeft < 0) {
+    tooltipLeft.val = `${-targetOffset.left}px`;
+    return false;
+  }
+  
+  // check right edge
   if (
     targetOffset.left + tooltipLayerStyleLeft + tooltipWidth >
     windowSize.width
   ) {
     // off the right side of the window
-    tooltipLeft.val = `${
-      windowSize.width - tooltipWidth - targetOffset.left
-    }px`;
+    const adjustedLeft = windowSize.width - tooltipWidth - targetOffset.left;
+    // Make sure adjustment doesn't cause negative left
+    tooltipLeft.val = `${Math.max(adjustedLeft, -targetOffset.left)}px`;
     return false;
   }
 
@@ -193,7 +194,12 @@ const alignTooltip = (
     case "top-left-aligned":
     // top-left-aligned is the same as the default top
     case "top":
-      const tooltipLayerStyleLeft = hintMode ? 0 : 15;
+      let tooltipLayerStyleLeft = hintMode ? 0 : 15;
+
+      // Check if it would go off left edge
+      if (targetOffset.left + tooltipLayerStyleLeft < 0) {
+        tooltipLayerStyleLeft = -targetOffset.left;
+      }
 
       checkRight(
         targetOffset,
@@ -205,26 +211,60 @@ const alignTooltip = (
       tooltipBottom.val = `${targetOffset.height + 20}px`;
       break;
     case "right":
-      tooltipLeft.val = `${targetOffset.width + 20}px`;
-
-      if (tooltipBottomOverflow.val) {
-        // In this case, right would have fallen below the bottom of the screen.
-        // Modify so that the bottom of the tooltip connects with the target
-        tooltipTop.val = `-${tooltipHeight - targetOffset.height - 20}px`;
+      // Check if there's enough space on the right
+      const rightSpaceNeeded = targetOffset.width + 20 + tooltipWidth;
+      if (targetOffset.left + rightSpaceNeeded > windowSize.width) {
+        // Not enough space on right, fallback to bottom position
+        // Check if tooltip would overflow left edge when at bottom
+        if (targetOffset.left < 0) {
+          tooltipLeft.val = `${-targetOffset.left}px`;
+        } else if (targetOffset.left + tooltipWidth > windowSize.width) {
+          // Tooltip wider than remaining space, align to right edge of viewport
+          tooltipLeft.val = `${windowSize.width - tooltipWidth - targetOffset.left}px`;
+        } else {
+          tooltipLeft.val = '0px';
+        }
+        tooltipTop.val = `${targetOffset.height + 20}px`;
+      } else {
+        // Normal right positioning - but still check for left edge overflow
+        const normalRightLeft = targetOffset.width + 20;
+        if (targetOffset.left + normalRightLeft < 0) {
+          // Would overflow left, clamp to viewport
+          tooltipLeft.val = `${-targetOffset.left}px`;
+        } else {
+          tooltipLeft.val = `${normalRightLeft}px`;
+        }
+        
+        if (tooltipBottomOverflow.val) {
+          // In this case, right would have fallen below the bottom of the screen.
+          // Modify so that the bottom of the tooltip connects with the target
+          tooltipTop.val = `-${tooltipHeight - targetOffset.height - 20}px`;
+        }
       }
       break;
     case "left":
-      if (!hintMode && showStepNumbers === true) {
-        tooltipTop.val = "15px";
-      }
+      // Check if there's enough space on the left
+      if (targetOffset.left - 20 - tooltipWidth < 0) {
+        // Not enough space on left, fallback to bottom with left edge protection
+        if (targetOffset.left < 0) {
+          tooltipLeft.val = `${-targetOffset.left}px`;
+        } else {
+          tooltipLeft.val = '0px';
+        }
+        tooltipTop.val = `${targetOffset.height + 20}px`;
+      } else {
+        // Normal left positioning
+        if (!hintMode && showStepNumbers === true) {
+          tooltipTop.val = "15px";
+        }
 
-      if (tooltipBottomOverflow.val) {
-        // In this case, left would have fallen below the bottom of the screen.
-        // Modify so that the bottom of the tooltip connects with the target
-        tooltipTop.val = `-${tooltipHeight - targetOffset.height - 20}px`;
+        if (tooltipBottomOverflow.val) {
+          // In this case, left would have fallen below the bottom of the screen.
+          // Modify so that the bottom of the tooltip connects with the target
+          tooltipTop.val = `-${tooltipHeight - targetOffset.height - 20}px`;
+        }
+        tooltipRight.val = `${targetOffset.width + 20}px`;
       }
-      tooltipRight.val = `${targetOffset.width + 20}px`;
-
       break;
     case "floating":
       //we have to adjust the top and left of layer manually for intro items without element
@@ -300,6 +340,73 @@ const alignTooltip = (
     default:
       checkRight(targetOffset, windowSize, 0, tooltipWidth, tooltipLeft);
       tooltipTop.val = `${targetOffset.height + 20}px`;
+  }
+  
+  // Final safety net: ensure tooltips never go off viewport edges
+  // This catches any edge cases not handled by position-specific logic
+  
+  // Protection for left-positioned tooltips (using CSS left property)
+  if (tooltipLeft.val && tooltipLeft.val !== 'auto') {
+    const leftVal = parseFloat(tooltipLeft.val);
+    if (!isNaN(leftVal)) {
+      const absoluteLeft = targetOffset.left + leftVal;
+      
+      // Prevent left edge overflow - CRITICAL: ensure absolute position >= 0
+      if (absoluteLeft < 0) {
+        // Calculate the adjustment needed to make absoluteLeft = 0
+        const adjustment = -absoluteLeft; // This is how much we need to add
+        tooltipLeft.val = `${leftVal + adjustment}px`;
+      }
+      
+      // Re-calculate with potentially adjusted value
+      const finalLeftVal = parseFloat(tooltipLeft.val);
+      const finalAbsoluteLeft = targetOffset.left + finalLeftVal;
+      
+      // Prevent right edge overflow
+      const absoluteRight = finalAbsoluteLeft + tooltipWidth;
+      if (absoluteRight > windowSize.width) {
+        const overflow = absoluteRight - windowSize.width;
+        const adjustedLeft = finalLeftVal - overflow;
+        // Clamp: never go below zero absolute position
+        const minLeft = -targetOffset.left;
+        tooltipLeft.val = `${Math.max(adjustedLeft, minLeft, 0)}px`;
+      }
+      
+      // FINAL ABSOLUTE GUARANTEE: One last check
+      const veryFinalLeft = parseFloat(tooltipLeft.val);
+      const veryFinalAbsolute = targetOffset.left + veryFinalLeft;
+      if (veryFinalAbsolute < 0) {
+        // Force to 0 absolute position no matter what
+        tooltipLeft.val = `${-targetOffset.left}px`;
+      }
+    }
+  }
+  
+  // Protection for right-positioned tooltips (using CSS right property)
+  if (tooltipRight.val && tooltipRight.val !== 'auto') {
+    const rightVal = parseFloat(tooltipRight.val);
+    if (!isNaN(rightVal)) {
+      // Calculate absolute right edge position
+      const absoluteRight = targetOffset.left + targetOffset.width - rightVal;
+      
+      // Calculate what the left position would be
+      const impliedLeft = absoluteRight - tooltipWidth;
+      
+      // If implied left would be negative, adjust to clamp at left edge
+      // but try to maintain as much right-alignment as possible
+      if (impliedLeft < 0) {
+        // Switch to left positioning clamped at 0
+        tooltipRight.val = 'auto';
+        tooltipLeft.val = '0px';
+      }
+      
+      // Also check if right edge would overflow viewport right side
+      if (absoluteRight > windowSize.width) {
+        // Adjust the right value to fit
+        const overflow = absoluteRight - windowSize.width;
+        tooltipRight.val = `${rightVal + overflow}px`;
+      }
+    }
   }
 };
 
@@ -417,6 +524,37 @@ export const Tooltip = (
         showStepNumbers,
         hintMode
       );
+      
+      // SYNCHRONOUS POST-ALIGNMENT CHECK: Force viewport-absolute positioning
+      // Check ALL positioning properties and ensure no negative absolute positions
+      if (targetOffset.val) {
+        // Handle left-based positioning
+        if (left.val && left.val !== 'auto') {
+          const leftVal = parseFloat(left.val);
+          if (!isNaN(leftVal)) {
+            const absoluteLeft = targetOffset.val.left + leftVal;
+            if (absoluteLeft < 0) {
+              // Force to viewport left edge
+              left.val = `${-targetOffset.val.left}px`;
+              right.val = 'auto';
+            }
+          }
+        }
+        
+        // Handle right-based positioning  
+        if (right.val && right.val !== 'auto' && tooltipWidth.val) {
+          const rightVal = parseFloat(right.val);
+          if (!isNaN(rightVal)) {
+            // Calculate implied absolute left position
+            const impliedLeft = targetOffset.val.left + targetOffset.val.width - rightVal - tooltipWidth.val;
+            if (impliedLeft < 0) {
+              // Switch to left-based positioning at viewport edge
+              right.val = 'auto';
+              left.val = `${-targetOffset.val.left}px`;
+            }
+          }
+        }
+      }
     }
   });
 
@@ -448,6 +586,23 @@ export const Tooltip = (
     // set the correct height and width of the tooltip after it has been rendered
     tooltipHeight.val = tooltip.offsetHeight;
     tooltipWidth.val = tooltip.offsetWidth;
+    
+    // CRITICAL FIX: Check actual rendered position and fix if negative
+    const rect = tooltip.getBoundingClientRect();
+    if (rect.left < 0) {
+      // Tooltip is off-screen left, need to shift it right
+      const adjustment = -rect.left; // How much we need to move right
+      
+      // Update the reactive state, not just the DOM
+      if (left.val && left.val !== 'auto') {
+        const currentLeftVal = parseFloat(left.val);
+        left.val = `${currentLeftVal + adjustment}px`;
+      } else {
+        // Force left positioning
+        left.val = '0px';
+        right.val = 'auto';
+      }
+    }
   }, 1);
 
   return tooltip;
