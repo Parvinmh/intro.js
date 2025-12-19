@@ -94,12 +94,12 @@ context("Tooltip Positioning - All Devices", () => {
 
       positions.forEach((position, idx) => {
         // Skip known edge cases where element positioning conflicts with tooltip size
-        const shouldSkip = 
+        const shouldSkip =
           (name === "Mobile (iPhone 12 Pro)" && position === "top") ||
           (name === "Tablet (iPad)" && position === "right");
-        
+
         const testFn = shouldSkip ? it.skip : it;
-        
+
         testFn(`should correctly position tooltip: ${position}`, () => {
           const elementId = `test-element-${idx}`;
 
@@ -226,23 +226,32 @@ context("Tooltip Positioning - All Devices", () => {
                     const leftSpaceAvailable = elementRect.left - 20;
                     if (leftSpaceAvailable < tooltipRect.width) {
                       // Fallback to bottom - tooltip should be below element
-                      expect(tooltipRect.top).to.be.greaterThan(elementRect.bottom);
+                      expect(tooltipRect.top).to.be.greaterThan(
+                        elementRect.bottom
+                      );
                     } else {
                       // Normal left positioning
-                      expect(tooltipRect.right).to.be.lessThan(elementRect.left);
+                      expect(tooltipRect.right).to.be.lessThan(
+                        elementRect.left
+                      );
                     }
                     break;
 
                   case "right":
                     // Tooltip should be to the right of element
                     // On very small screens, may fallback to bottom position
-                    const rightSpaceAvailable = width - (elementRect.right + 20);
+                    const rightSpaceAvailable =
+                      width - (elementRect.right + 20);
                     if (rightSpaceAvailable < tooltipRect.width) {
                       // Fallback to bottom - tooltip should be below element
-                      expect(tooltipRect.top).to.be.greaterThan(elementRect.bottom);
+                      expect(tooltipRect.top).to.be.greaterThan(
+                        elementRect.bottom
+                      );
                     } else {
                       // Normal right positioning
-                      expect(tooltipRect.left).to.be.greaterThan(elementRect.right);
+                      expect(tooltipRect.left).to.be.greaterThan(
+                        elementRect.right
+                      );
                     }
                     break;
                 }
