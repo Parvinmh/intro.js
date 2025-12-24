@@ -31,59 +31,7 @@ context("Tooltip Positioning - All Devices", () => {
   ];
 
   beforeEach(() => {
-    // Use existing cypress setup page
     cy.visit("./cypress/setup/index.html");
-
-    // Add test elements dynamically
-    cy.document().then((doc) => {
-      // Clear existing content for clean test environment
-      const container = doc.createElement("div");
-      container.id = "tooltip-position-test-container";
-      container.innerHTML = `
-        <style>
-          body { padding: 100px; margin: 0; font-family: Arial; }
-          .test-container { 
-            display: flex; 
-            flex-direction: column;
-            gap: 200px;
-            min-height: 3000px;
-          }
-          .test-row {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            gap: 50px;
-          }
-          .test-element {
-            width: 150px;
-            height: 100px;
-            background: #4CAF50;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            border-radius: 8px;
-            font-size: 14px;
-            padding: 10px;
-          }
-        </style>
-        <div class="test-container">
-          ${positions
-            .map(
-              (pos, idx) => `
-            <div class="test-row">
-              <div id="test-element-${idx}" class="test-element" data-intro="Testing ${pos} position" data-position="${pos}">
-                ${pos}
-              </div>
-            </div>
-          `
-            )
-            .join("")}
-        </div>
-      `;
-      doc.body.appendChild(container);
-    });
   });
 
   viewportSizes.forEach(({ name, width, height }) => {
@@ -92,7 +40,7 @@ context("Tooltip Positioning - All Devices", () => {
         cy.viewport(width, height);
       });
 
-      positions.forEach((position, idx) => {
+      positions.forEach((position) => {
         // Skip known edge cases where element positioning conflicts with tooltip size
         const shouldSkip =
           (name === "Mobile (iPhone 12 Pro)" && position === "top") ||
@@ -101,10 +49,22 @@ context("Tooltip Positioning - All Devices", () => {
         const testFn = shouldSkip ? it.skip : it;
 
         testFn(`should correctly position tooltip: ${position}`, () => {
-          const elementId = `test-element-${idx}`;
+          // Create test element dynamically for this specific test
+          cy.document().then((doc) => {
+            const element = doc.createElement("div");
+            element.id = "tooltip-test-element";
+            element.style.cssText =
+              "width: 150px; height: 100px; background: #4CAF50; color: white; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 8px; font-size: 14px; padding: 10px; margin: 300px auto;";
+            element.setAttribute("data-intro", `Testing ${position} position`);
+            element.setAttribute("data-position", position);
+            element.textContent = position;
+            doc.body.appendChild(element);
+          });
+
+          cy.wait(100);
 
           // Scroll element into view
-          cy.get(`#${elementId}`).scrollIntoView({ duration: 300 });
+          cy.get("#tooltip-test-element").scrollIntoView({ duration: 300 });
           cy.wait(200);
 
           // Start intro.js with specific position
@@ -114,7 +74,7 @@ context("Tooltip Positioning - All Devices", () => {
               .setOptions({
                 steps: [
                   {
-                    element: `#${elementId}`,
+                    element: "#tooltip-test-element",
                     intro: `Testing ${position} position on ${name}`,
                     position: position,
                   },
@@ -129,7 +89,7 @@ context("Tooltip Positioning - All Devices", () => {
           cy.wait(500);
 
           // Get element and tooltip positions
-          cy.get(`#${elementId}`).then(($element) => {
+          cy.get("#tooltip-test-element").then(($element) => {
             const elementRect = $element[0].getBoundingClientRect();
 
             cy.get(".introjs-tooltip")
@@ -274,15 +234,11 @@ context("Tooltip Positioning - All Devices", () => {
         cy.document().then((doc) => {
           const leftElement = doc.createElement("div");
           leftElement.id = "test-edge-left";
-          leftElement.className = "test-element";
-          leftElement.style.position = "absolute";
-          leftElement.style.left = "10px";
-          leftElement.style.top = "300px";
+          leftElement.style.cssText =
+            "width: 150px; height: 100px; background: #4CAF50; color: white; display: flex; align-items: center; justify-content: center; border-radius: 8px; position: absolute; left: 10px; top: 300px;";
           leftElement.setAttribute("data-intro", "Testing edge constraint");
           leftElement.textContent = "Left Edge";
-          doc
-            .getElementById("tooltip-position-test-container")
-            ?.appendChild(leftElement);
+          doc.body.appendChild(leftElement);
         });
 
         cy.wait(100);
@@ -321,20 +277,31 @@ context("Tooltip Positioning - All Devices", () => {
 
   // Cross-device comparison test
   context("Cross-Device Consistency", () => {
-    it("should maintain consistent relative positioning across devices", () => {
-      const results: any[] = [];
+    const devicesToCompare = [
+      { name: "Mobile", width: 375, height: 667 },
+      { name: "Desktop", width: 1920, height: 1080 },
+    ];
 
-      // Test on multiple devices
-      const devicesToCompare = [
-        { width: 375, height: 667 },
-        { width: 1920, height: 1080 },
-      ];
-
-      devicesToCompare.forEach(({ width, height }, deviceIdx) => {
+    devicesToCompare.forEach(({ name, width, height }) => {
+      it(`should maintain correct positioning on ${name} (${width}x${height})`, () => {
         cy.viewport(width, height);
-        cy.wait(300);
+        cy.wait(100);
 
-        cy.get("#test-element-4").scrollIntoView(); // bottom-middle-aligned element
+        // Create test element for this device
+        cy.document().then((doc) => {
+          const element = doc.createElement("div");
+          element.id = "consistency-test-element";
+          element.style.cssText =
+            "width: 150px; height: 100px; background: #4CAF50; color: white; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin: 300px auto;";
+          element.setAttribute("data-intro", "Consistency test");
+          element.setAttribute("data-position", "bottom-middle-aligned");
+          element.textContent = "Test";
+          doc.body.appendChild(element);
+        });
+
+        cy.wait(100);
+
+        cy.get("#consistency-test-element").scrollIntoView();
         cy.wait(200);
 
         cy.window().then((win) => {
@@ -343,7 +310,7 @@ context("Tooltip Positioning - All Devices", () => {
             .setOptions({
               steps: [
                 {
-                  element: "#test-element-4",
+                  element: "#consistency-test-element",
                   intro: "Consistency test",
                   position: "bottom-middle-aligned",
                 },
@@ -355,7 +322,7 @@ context("Tooltip Positioning - All Devices", () => {
 
         cy.wait(500);
 
-        cy.get("#test-element-4").then(($element) => {
+        cy.get("#consistency-test-element").then(($element) => {
           const elementRect = $element[0].getBoundingClientRect();
 
           cy.get(".introjs-tooltip").then(($tooltip) => {
@@ -364,16 +331,13 @@ context("Tooltip Positioning - All Devices", () => {
             // Calculate relative position
             const elementCenter = elementRect.left + elementRect.width / 2;
             const tooltipCenter = tooltipRect.left + tooltipRect.width / 2;
-            const relativeOffset = tooltipCenter - elementCenter;
-
-            results.push({
-              device: `${width}x${height}`,
-              relativeOffset,
-              isBelow: tooltipRect.top > elementRect.bottom,
-            });
+            const relativeOffset = Math.abs(tooltipCenter - elementCenter);
 
             // All devices should show tooltip below element
             expect(tooltipRect.top).to.be.greaterThan(elementRect.bottom);
+
+            // Tooltip should be horizontally centered (within tolerance)
+            expect(relativeOffset).to.be.lessThan(10);
           });
         });
 
@@ -381,22 +345,27 @@ context("Tooltip Positioning - All Devices", () => {
           (win as any).introJs.tour().exit(true);
         });
       });
-
-      // After all devices tested, verify consistency
-      cy.wrap(results).then((res) => {
-        if (res.length === 2) {
-          // Relative offset should be similar (within 20px)
-          const diff = Math.abs(res[0].relativeOffset - res[1].relativeOffset);
-          expect(diff).to.be.lessThan(20);
-        }
-      });
     });
   });
 
   // Performance test
   context("Performance", () => {
     it("should calculate positions quickly across rapid viewport changes", () => {
-      cy.get("#test-element-4").scrollIntoView();
+      // Create test element
+      cy.document().then((doc) => {
+        const element = doc.createElement("div");
+        element.id = "performance-test-element";
+        element.style.cssText =
+          "width: 150px; height: 100px; background: #4CAF50; color: white; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin: 300px auto;";
+        element.setAttribute("data-intro", "Performance test");
+        element.setAttribute("data-position", "bottom-middle-aligned");
+        element.textContent = "Performance";
+        doc.body.appendChild(element);
+      });
+
+      cy.wait(100);
+
+      cy.get("#performance-test-element").scrollIntoView();
 
       cy.window().then((win) => {
         (win as any).introJs
@@ -404,7 +373,7 @@ context("Tooltip Positioning - All Devices", () => {
           .setOptions({
             steps: [
               {
-                element: "#test-element-4",
+                element: "#performance-test-element",
                 intro: "Performance test",
                 position: "bottom-middle-aligned",
               },
