@@ -105,17 +105,15 @@ export function determineAutoPosition(
   }
 
   // Check if user requested a specific alignment
-  const userRequestedAlignment = desiredTooltipPosition && 
-    (desiredTooltipPosition.includes("-aligned"));
-  
+  const userRequestedAlignment =
+    desiredTooltipPosition && desiredTooltipPosition.includes("-aligned");
+
   // strip alignment from position for base position checking
   let basePosition = desiredTooltipPosition;
   if (desiredTooltipPosition) {
     // ex: "bottom-right-aligned"
     // should return 'bottom'
-    basePosition = desiredTooltipPosition.split(
-      "-"
-    )[0] as TooltipPosition;
+    basePosition = desiredTooltipPosition.split("-")[0] as TooltipPosition;
   }
 
   if (possiblePositions.length) {
@@ -155,7 +153,10 @@ export function determineAutoPosition(
     }
 
     // If user requested a specific alignment, use it directly
-    if (userRequestedAlignment && desiredAlignment.includes(desiredTooltipPosition)) {
+    if (
+      userRequestedAlignment &&
+      desiredAlignment.includes(desiredTooltipPosition)
+    ) {
       calculatedPosition = desiredTooltipPosition;
     } else {
       // No specific alignment requested, use auto-alignment
