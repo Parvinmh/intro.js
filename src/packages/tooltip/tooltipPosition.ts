@@ -104,22 +104,25 @@ export function determineAutoPosition(
     removeEntry<TooltipPosition>(possiblePositions, "left");
   }
 
-  // strip alignment from position
+  // Check if user requested a specific alignment
+  const userRequestedAlignment =
+    desiredTooltipPosition && desiredTooltipPosition.includes("-aligned");
+
+  // strip alignment from position for base position checking
+  let basePosition = desiredTooltipPosition;
   if (desiredTooltipPosition) {
     // ex: "bottom-right-aligned"
     // should return 'bottom'
-    desiredTooltipPosition = desiredTooltipPosition.split(
-      "-"
-    )[0] as TooltipPosition;
+    basePosition = desiredTooltipPosition.split("-")[0] as TooltipPosition;
   }
 
   if (possiblePositions.length) {
     // Pick the first valid position, in order
     calculatedPosition = possiblePositions[0];
 
-    if (possiblePositions.includes(desiredTooltipPosition)) {
+    if (possiblePositions.includes(basePosition)) {
       // If the requested position is in the list, choose that
-      calculatedPosition = desiredTooltipPosition;
+      calculatedPosition = basePosition;
     }
   }
 
@@ -149,13 +152,22 @@ export function determineAutoPosition(
       ];
     }
 
-    calculatedPosition =
-      determineAutoAlignment(
-        targetOffset.absoluteLeft,
-        tooltipWidth,
-        windowSize.width,
-        desiredAlignment
-      ) || defaultAlignment;
+    // If user requested a specific alignment, use it directly
+    if (
+      userRequestedAlignment &&
+      desiredAlignment.includes(desiredTooltipPosition)
+    ) {
+      calculatedPosition = desiredTooltipPosition;
+    } else {
+      // No specific alignment requested, use auto-alignment
+      calculatedPosition =
+        determineAutoAlignment(
+          targetOffset.absoluteLeft,
+          tooltipWidth,
+          windowSize.width,
+          desiredAlignment
+        ) || defaultAlignment;
+    }
   }
 
   return calculatedPosition;
