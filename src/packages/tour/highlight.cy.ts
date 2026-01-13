@@ -34,33 +34,44 @@ context("Highlight", () => {
 
   it("should let user interact with the target element", () => {
     cy.window().then((window) => {
+      const button = window.document.querySelector("#clickable-button");
+      button.addEventListener("mouseover", () => {
+        button.textContent = "Hovered";
+      });
+
       window.introJs
         .tour()
         .setOptions({
           steps: [
-            {
-              intro: "step one",
-            },
+            { intro: "step one" },
             {
               element: "#clickable-button",
               intro: "step two",
+              disableInteraction: false,
             },
           ],
         })
         .start();
 
-      let sp = cy.spy(window, "click");
-
       cy.nextStep();
       cy.wait(500);
-      cy.get(".introjs-tooltiptext").contains("step two");
+
+      cy.get(".introjs-tooltiptext").should("contain", "step two");
 
       cy.get(".introjs-helperLayer").realHover();
-      cy.get("#clickable-button").contains("Hovered");
 
-      cy.get(".introjs-helperLayer")
-        .realClick()
-        .then(() => expect(sp).to.be.calledOnce);
+      cy.get("#clickable-button").should("contain", "Hovered");
+
+      cy.get("#clickable-button").then(($btn) => {
+        const spy = cy.spy();
+        $btn.on("click", spy);
+
+        cy.get(".introjs-helperLayer")
+          .realClick()
+          .then(() => {
+            expect(spy).to.have.been.calledOnce;
+          });
+      });
     });
   });
 

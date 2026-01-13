@@ -3,6 +3,7 @@ import faIR from "./fa_IR";
 import deDE from "./de_DE";
 import esES from "./es_ES";
 import frFR from "./fr_FR";
+import ar_SA from "./ar_SA";
 
 const languages = {
   en_US: enUS,
@@ -10,6 +11,7 @@ const languages = {
   de_DE: deDE,
   es_ES: esES,
   fr_FR: frFR,
+  ar_SA: ar_SA,
 } as const;
 
 export type LanguageCode = keyof typeof languages;

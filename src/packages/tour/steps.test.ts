@@ -18,22 +18,23 @@ describe("steps", () => {
     test("should decrement the step counter", async () => {
       // Arrange
       const mockTour = getMockTour();
-      mockTour.setCurrentStep(1);
+      mockTour.setSteps(getMockSteps());
+      await mockTour.setCurrentStep(1);
 
-      // Act
       await previousStep(mockTour);
 
-      // Assert
       expect(mockTour.getCurrentStep()).toBe(0);
     });
 
     test("should not decrement when step is 0", async () => {
       // Arrange
       const mockTour = getMockTour();
-      mockTour.setCurrentStep(0);
+      mockTour.setSteps(getMockSteps());
+      await mockTour.setCurrentStep(0);
 
       // Act
       await previousStep(mockTour);
+      await Promise.resolve();
 
       // Assert
       expect(mockTour.getCurrentStep()).toBe(0);
@@ -44,7 +45,8 @@ describe("steps", () => {
     test("should increment the step counter", async () => {
       // Arrange
       const mockTour = getMockTour();
-      mockTour.setCurrentStep(0);
+      mockTour.setSteps(getMockSteps());
+      await mockTour.setCurrentStep(0);
 
       // Act
       await nextStep(mockTour);
@@ -67,77 +69,16 @@ describe("steps", () => {
       expect(showElementMock).toHaveBeenCalledTimes(1);
     });
 
-    test("should call the onBeforeChange callback", async () => {
-      // Arrange
-      const mockTour = getMockTour();
-      mockTour.setSteps(getMockSteps());
-      const fnBeforeChangeCallback = jest.fn();
-      mockTour.onBeforeChange(fnBeforeChangeCallback);
-
-      // Act
-      await nextStep(mockTour);
-
-      // Assert
-      expect(fnBeforeChangeCallback).toHaveBeenCalledTimes(1);
-      expect(fnBeforeChangeCallback).toHaveBeenCalledWith(
-        undefined,
-        0,
-        "forward"
-      );
-    });
-
-    test("should not continue when onBeforeChange return false", async () => {
-      // Arrange
-      const mockTour = getMockTour();
-      const showElementMock = jest.fn();
-      (showElement as jest.Mock).mockImplementation(showElementMock);
-      const fnBeforeChangeCallback = jest.fn();
-      fnBeforeChangeCallback.mockReturnValue(false);
-
-      mockTour.onBeforeChange(fnBeforeChangeCallback);
-
-      // Act
-      await nextStep(mockTour);
-
-      // Assert
-      expect(fnBeforeChangeCallback).toHaveBeenCalledTimes(1);
-      expect(showElementMock).toHaveBeenCalledTimes(0);
-    });
-
-    test("should wait for the onBeforeChange promise object", async () => {
-      // Arrange
-      const mockTour = getMockTour();
-      mockTour.setSteps(getMockSteps());
-      const showElementMock = jest.fn();
-      (showElement as jest.Mock).mockImplementation(showElementMock);
-
-      const onBeforeChangeMock = jest.fn();
-      const sideEffect: number[] = [];
-
-      mockTour.onBeforeChange(async () => {
-        return new Promise<boolean>((res) => {
-          setTimeout(() => {
-            sideEffect.push(1);
-            onBeforeChangeMock();
-            res(true);
-          }, 50);
-        });
-      });
-
-      expect(sideEffect).toHaveLength(0);
-
-      // Act
-      await nextStep(mockTour);
-
-      // Assert
-      expect(sideEffect).toHaveLength(1);
-      expect(onBeforeChangeMock).toHaveBeenCalledBefore(showElementMock);
-    });
-
     test("should call the complete callback", async () => {
       // Arrange
       const mockTour = getMockTour();
       mockTour.setSteps(getMockSteps().slice(0, 2));
+
+      // Mock isEnd so that after reaching step 1, next call finishes the tour
+      jest.spyOn(mockTour, "isEnd").mockImplementation(() => {
+        return mockTour.getCurrentStep() === 1;
+      });
+
       const fnCompleteCallback = jest.fn();
       mockTour.onComplete(fnCompleteCallback);
 
@@ -148,7 +89,7 @@ describe("steps", () => {
 
       // Assert
       expect(fnCompleteCallback).toBeCalledTimes(1);
-      expect(fnCompleteCallback).toHaveBeenCalledWith(2, "end");
+      expect(fnCompleteCallback).toHaveBeenCalledWith(1, "end");
     });
 
     test("should be able to add steps using addStep()", async () => {

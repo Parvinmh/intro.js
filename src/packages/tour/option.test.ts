@@ -37,7 +37,7 @@ describe("getDefaultTourOptions", () => {
       translator.translate("messages.stepNumbersOfLabel")
     );
     expect(opts.dontShowAgainLabel).toBe(
-      translator.translate("messages.dontShowAgain")
+      translator.translate("messages.dontShowAgainLabel")
     );
     expect(opts.language).toEqual("es_ES");
   });

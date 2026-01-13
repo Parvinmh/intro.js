@@ -118,7 +118,9 @@ export function getDefaultTourOptions(translator?: Translator): TourOptions {
     disableInteraction: false,
 
     dontShowAgain: false,
-    dontShowAgainLabel: activeTranslator.translate("messages.dontShowAgain"),
+    dontShowAgainLabel: activeTranslator.translate(
+      "messages.dontShowAgainLabel"
+    ),
     dontShowAgainCookie: "introjs-dontShowAgain",
     dontShowAgainCookieDays: 365,
     helperElementPadding: 10,

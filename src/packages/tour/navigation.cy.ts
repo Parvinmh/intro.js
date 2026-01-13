@@ -54,10 +54,15 @@ context("Navigation", () => {
   });
 
   it("should navigate by clicking on the bullet items", () => {
-    cy.get(".introjs-tooltiptext").contains("step one");
-    cy.get(".introjs-bullets > ul > li:nth-child(1)").click();
-    cy.get(".introjs-tooltiptext").contains("step one");
-    cy.get(".introjs-bullets > ul > li:nth-child(2)").click();
-    cy.get(".introjs-tooltiptext").contains("step two");
+    cy.get(".introjs-tooltiptext").should("contain.text", "step one");
+
+    cy.get(".introjs-bullets > ul > li:nth-child(1)").trigger("click");
+    cy.get(".introjs-tooltiptext").should("contain.text", "step one");
+
+    cy.get(".introjs-bullets > ul > li:nth-child(2)").trigger("click");
+
+    cy.get(".introjs-tooltiptext").should(($el) => {
+      expect($el.text().trim()).to.eq("step two");
+    });
   });
 });

@@ -203,16 +203,30 @@ export class Tour implements Package<TourOptions> {
    * Set the current step of the tour and the direction of the tour
    * @param step
    */
-  setCurrentStep(step: number): this {
+  async setCurrentStep(step: number): Promise<this> {
+    const targetStep = this.getStep(step);
+    if (!targetStep) return this;
+
+    const currentStep = this._currentStepSignal.val;
+    const direction =
+      currentStep === undefined || step >= currentStep ? "forward" : "backward";
+
+    const continueStep = await this.callback("beforeChange")?.call(
+      this,
+      targetStep.element as HTMLElement,
+      currentStep,
+      direction
+    );
+
     if (
-      this._currentStepSignal.val === undefined ||
-      step >= this._currentStepSignal.val
+      direction === "forward" &&
+      continueStep === false &&
+      currentStep !== undefined
     ) {
-      this._direction = "forward";
-    } else {
-      this._direction = "backward";
+      return this;
     }
 
+    this._direction = direction;
     this._currentStepSignal.val = step;
     return this;
   }
@@ -220,12 +234,12 @@ export class Tour implements Package<TourOptions> {
   /**
    * Increment the current step of the tour (does not start the tour step, must be called in conjunction with `nextStep`)
    */
-  incrementCurrentStep(): this {
+  async incrementCurrentStep(): Promise<this> {
     const currentStep = this.getCurrentStep();
     if (currentStep === undefined) {
-      this.setCurrentStep(0);
+      await this.setCurrentStep(0);
     } else {
-      this.setCurrentStep(currentStep + 1);
+      await this.setCurrentStep(currentStep + 1);
     }
 
     return this;
@@ -234,10 +248,10 @@ export class Tour implements Package<TourOptions> {
   /**
    * Decrement the current step of the tour (does not start the tour step, must be in conjunction with `previousStep`)
    */
-  decrementCurrentStep(): this {
+  async decrementCurrentStep(): Promise<this> {
     const currentStep = this.getCurrentStep();
     if (currentStep !== undefined && currentStep > 0) {
-      this.setCurrentStep(currentStep - 1);
+      await this.setCurrentStep(currentStep - 1);
     }
 
     return this;
