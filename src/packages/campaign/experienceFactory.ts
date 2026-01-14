@@ -116,7 +116,7 @@ export class ExperienceFactory {
         return this.createHintExperience(campaign);
       default:
         throw new Error(
-          `Unsupported experience type: ${campaign.mode}. Supported types are: tour, hint`
+          `Unsupported experience type: ${campaign}. Supported types are: tour, hint`
         );
     }
   }
