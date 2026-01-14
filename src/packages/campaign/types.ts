@@ -1,7 +1,5 @@
 import { TourOptions } from "../tour/option";
 import { HintOptions } from "../hint/option";
-import { Tour } from "../tour/tour";
-import { Hint } from "../hint/hint";
 
 /**
  * Base trigger interface that all triggers must implement
@@ -188,9 +186,9 @@ export interface CampaignTargeting {
 }
 
 /**
- * Main campaign configuration
+ * Base campaign configuration with common fields
  */
-export interface Campaign {
+export interface BaseCampaign {
   id: string; // Unique campaign identifier
   name: string; // Campaign name
   description?: string; // Campaign description
@@ -199,15 +197,6 @@ export interface Campaign {
 
   // Trigger configuration - can have multiple triggers (OR logic)
   triggers: CampaignTrigger[];
-
-  // Tour or Hint mode
-  mode: Tour | Hint;
-
-  // Tour configuration - uses existing TourOptions structure
-  tourOptions?: Partial<TourOptions>;
-
-  // Hint configuration - uses existing HintOptions structure
-  hintOptions?: Partial<HintOptions>;
 
   // Frequency and targeting
   frequency?: CampaignFrequency;
@@ -222,6 +211,27 @@ export interface Campaign {
 }
 
 /**
+ * Tour campaign configuration
+ */
+export interface TourCampaign extends BaseCampaign {
+  mode: "tour";
+  options: Partial<TourOptions>;
+}
+
+/**
+ * Hint campaign configuration
+ */
+export interface HintCampaign extends BaseCampaign {
+  mode: "hint";
+  options: Partial<HintOptions>;
+}
+
+/**
+ * Main campaign configuration - discriminated union based on mode
+ */
+export type Campaign = TourCampaign | HintCampaign;
+
+/**
  * Campaign collection (multiple campaigns)
  */
 export interface CampaignCollection {
@@ -229,8 +239,6 @@ export interface CampaignCollection {
   campaigns: Campaign[];
   global?: {
     targeting?: CampaignTargeting;
-    tourDefaults?: Partial<TourOptions>;
-    hintDefaults?: Partial<HintOptions>;
   };
 }
 

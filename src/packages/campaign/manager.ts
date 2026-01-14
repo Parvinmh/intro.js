@@ -4,11 +4,14 @@ import {
   CampaignContext,
   CampaignCollection,
 } from "./types";
-import { Tour } from "../tour/tour";
 import { TriggerDetector } from "./triggers";
 import { UserTracker } from "./userTracker";
 import { CampaignStorage } from "./storage";
 import isFunction from "../../util/isFunction";
+import {
+  ExperienceFactory,
+  CampaignExperience,
+} from "./experienceFactory";
 
 /**
  * Campaign Manager - Main class for managing and executing campaigns
@@ -18,7 +21,7 @@ export class CampaignManager {
   private triggerDetector: TriggerDetector;
   private userTracker: UserTracker;
   private storage: CampaignStorage;
-  private activeTours: Map<string, Tour> = new Map();
+  private activeExperiences: Map<string, CampaignExperience> = new Map();
   private isInitialized = false;
 
   constructor() {
@@ -85,11 +88,11 @@ export class CampaignManager {
       this.triggerDetector.removeCampaignTriggers(campaignId);
       this.campaigns.delete(campaignId);
 
-      // Stop active tour if running
-      const activeTour = this.activeTours.get(campaignId);
-      if (activeTour) {
-        activeTour.exit();
-        this.activeTours.delete(campaignId);
+      // Stop active experience if running
+      const activeExperience = this.activeExperiences.get(campaignId);
+      if (activeExperience) {
+        activeExperience.exit();
+        this.activeExperiences.delete(campaignId);
       }
     }
   }
@@ -193,7 +196,8 @@ export class CampaignManager {
   }
 
   /**
-   * Execute a campaign
+   * Execute a campaign using the Experience Factory pattern
+   * This method is decoupled from specific experience types (Tour, Hint, etc.)
    */
   async executeCampaign(
     campaignId: string,
@@ -223,137 +227,29 @@ export class CampaignManager {
     // Track campaign execution
     await this.storage.trackCampaignExecution(campaignId);
 
-    // Convert campaign steps to tour steps
-    const steps = campaign.tourOptions?.steps ?? [];
-
-    const tourSteps = steps.map((step) => ({
-      step: step.step,
-      title: step.title,
-      intro: step.intro,
-      element: step.element,
-      position: step.position,
-      scrollTo: step.scrollTo,
-      disableInteraction: step.disableInteraction,
-      tooltipClass: step.tooltipClass,
-    }));
-
-    // Create and configure tour
-    const tour = new Tour();
-    tour.setOptions({
-      ...campaign.tourOptions,
-      steps: tourSteps,
-    });
-
-    // Set up campaign-specific callbacks
-    this.setupCampaignCallbacks(tour, campaign);
-
-    // Store active tour
-    this.activeTours.set(campaignId, tour);
-
-    // Start the tour
+    // Use the factory to create the appropriate experience type
     try {
-      await tour.start();
+      const experience = ExperienceFactory.createExperience(campaign);
+
+      // Set up lifecycle callbacks
+      experience.onComplete(() => {
+        this.activeExperiences.delete(campaignId);
+      });
+
+      experience.onExit(() => {
+        this.activeExperiences.delete(campaignId);
+      });
+
+      // Store active experience
+      this.activeExperiences.set(campaignId, experience);
+
+      // Start the experience
+      await experience.start();
       return true;
     } catch (error) {
-      console.error("Failed to start campaign tour:", error);
-      this.activeTours.delete(campaignId);
+      console.error(`Failed to start campaign ${campaign.mode}:`, error);
+      this.activeExperiences.delete(campaignId);
       return false;
-    }
-  }
-
-  /**
-   * Setup campaign-specific callbacks
-   */
-  private setupCampaignCallbacks(tour: Tour, campaign: Campaign): void {
-    // On complete callback
-    tour.onComplete(() => {
-      this.activeTours.delete(campaign.id);
-    });
-
-    // On exit callback
-    tour.onExit(() => {
-      this.activeTours.delete(campaign.id);
-    });
-
-    // Custom step callbacks for campaign features
-    tour.onAfterChange((element) => {
-      const steps = campaign.tourOptions?.steps ?? [];
-      const stepIndex = steps.findIndex((s) => {
-        if (!s.element) return false;
-        if (typeof s.element === "string") {
-          return document.querySelector(s.element) === element;
-        }
-        return s.element === element;
-      });
-      const campaignStep = steps[stepIndex];
-      if (campaignStep) {
-        this.handleStepActions(campaignStep, element);
-
-        const autoAdvance = (campaignStep as any).autoAdvance;
-        if (autoAdvance) {
-          setTimeout(() => {
-            tour.nextStep();
-          }, autoAdvance);
-        }
-      }
-    });
-  }
-
-  /**
-   * Handle step-specific actions
-   */
-  private handleStepActions(step: any, element: HTMLElement): void {
-    if (step.actions) {
-      step.actions.forEach((action: any) => {
-        setTimeout(() => {
-          switch (action.type) {
-            case "highlight":
-              if (action.selector) {
-                const targetElement = document.querySelector(action.selector);
-                if (targetElement) {
-                  targetElement.classList.add("introjs-campaign-highlight");
-                }
-              }
-              break;
-            case "scroll":
-              if (action.selector) {
-                const targetElement = document.querySelector(action.selector);
-                if (targetElement) {
-                  targetElement.scrollIntoView({ behavior: "smooth" });
-                }
-              }
-              break;
-            case "click":
-              if (action.selector) {
-                const targetElement = document.querySelector(
-                  action.selector
-                ) as HTMLElement;
-                if (targetElement) {
-                  targetElement.click();
-                }
-              }
-              break;
-            case "focus":
-              if (action.selector) {
-                const targetElement = document.querySelector(
-                  action.selector
-                ) as HTMLElement;
-                if (targetElement) {
-                  targetElement.focus();
-                }
-              }
-              break;
-            case "custom_function":
-              if (action.functionName) {
-                const customFn = (window as any)[action.functionName];
-                if (isFunction(customFn)) {
-                  customFn(element, step);
-                }
-              }
-              break;
-          }
-        }, action.delay || 0);
-      });
     }
   }
 
@@ -376,11 +272,11 @@ export class CampaignManager {
    * Stop all active campaigns
    */
   async stopAllCampaigns(): Promise<void> {
-    this.activeTours.forEach(async (tour) => {
-      await tour.exit();
+    this.activeExperiences.forEach(async (experience) => {
+      await experience.exit();
     });
 
-    this.activeTours.clear();
+    this.activeExperiences.clear();
   }
 
   /**
