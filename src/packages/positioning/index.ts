@@ -273,9 +273,13 @@ const detectOverflow = (
   padding: number
 ): Overflow => {
   const right =
-    coords.x + floatingRect.width - (boundaryRect.x + boundaryRect.width - padding);
+    coords.x +
+    floatingRect.width -
+    (boundaryRect.x + boundaryRect.width - padding);
   const bottom =
-    coords.y + floatingRect.height - (boundaryRect.y + boundaryRect.height - padding);
+    coords.y +
+    floatingRect.height -
+    (boundaryRect.y + boundaryRect.height - padding);
   const left = boundaryRect.x + padding - coords.x;
   const top = boundaryRect.y + padding - coords.y;
   return {
@@ -299,9 +303,20 @@ const pickBestPlacement = (
   let bestScore = Infinity;
 
   for (const p of placements) {
-    const coords = computeBaseCoords(referenceRect, floatingRect, p, boundaryRect);
-    const overflow = detectOverflow(coords, floatingRect, boundaryRect, padding);
-    const score = overflow.top + overflow.right + overflow.bottom + overflow.left;
+    const coords = computeBaseCoords(
+      referenceRect,
+      floatingRect,
+      p,
+      boundaryRect
+    );
+    const overflow = detectOverflow(
+      coords,
+      floatingRect,
+      boundaryRect,
+      padding
+    );
+    const score =
+      overflow.top + overflow.right + overflow.bottom + overflow.left;
 
     if (score === 0) return p;
     if (score < bestScore) {
@@ -425,10 +440,19 @@ export const computePosition = ({
   const referenceRect = getRect(reference);
   const floatingRect = getRect(floating);
   const boundaryRect = getBoundaryRect();
-  const rects = { reference: referenceRect, floating: floatingRect, boundary: boundaryRect };
+  const rects = {
+    reference: referenceRect,
+    floating: floatingRect,
+    boundary: boundaryRect,
+  };
 
   let placement: Placement = initialPlacement;
-  let { x, y } = computeBaseCoords(referenceRect, floatingRect, placement, boundaryRect);
+  let { x, y } = computeBaseCoords(
+    referenceRect,
+    floatingRect,
+    placement,
+    boundaryRect
+  );
   const middlewareData: Record<string, any> = {};
 
   // Run the middleware pipeline. Each middleware can modify x/y, store data,
@@ -450,7 +474,10 @@ export const computePosition = ({
     if (result.x != null) x = result.x;
     if (result.y != null) y = result.y;
     if (result.data) {
-      middlewareData[mw.name] = { ...(middlewareData[mw.name] ?? {}), ...result.data };
+      middlewareData[mw.name] = {
+        ...(middlewareData[mw.name] ?? {}),
+        ...result.data,
+      };
     }
 
     if (result.reset) {
@@ -458,7 +485,12 @@ export const computePosition = ({
         typeof result.reset === "object" ? result.reset.placement : undefined;
       if (next && next !== placement) {
         placement = next;
-        ({ x, y } = computeBaseCoords(referenceRect, floatingRect, placement, boundaryRect));
+        ({ x, y } = computeBaseCoords(
+          referenceRect,
+          floatingRect,
+          placement,
+          boundaryRect
+        ));
       }
       i = 0;
       continue;
@@ -476,10 +508,8 @@ export const computePosition = ({
   const scroll = getScrollOffsets();
   const offsetParentRect = getOffsetParentRect(floating);
 
-  const cssX =
-    strategy === "fixed" ? x : x + scroll.x - offsetParentRect.x;
-  const cssY =
-    strategy === "fixed" ? y : y + scroll.y - offsetParentRect.y;
+  const cssX = strategy === "fixed" ? x : x + scroll.x - offsetParentRect.x;
+  const cssY = strategy === "fixed" ? y : y + scroll.y - offsetParentRect.y;
 
   return {
     x: cssX,

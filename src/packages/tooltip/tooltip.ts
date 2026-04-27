@@ -10,7 +10,11 @@ import {
   Placement,
 } from "../positioning";
 import { TooltipPosition } from "./index";
-import { computeArrowStyles, TooltipArrow, type TooltipArrowStyles } from "./tooltipArrow";
+import {
+  computeArrowStyles,
+  TooltipArrow,
+  type TooltipArrowStyles,
+} from "./tooltipArrow";
 
 export type { TooltipArrowStyles } from "./tooltipArrow";
 
@@ -134,7 +138,11 @@ export const Tooltip = (
 
     // Floating steps must always use "center" placement — positionPrecedence
     // is irrelevant because there is no real reference element to anchor to.
-    if (autoPosition && positionPrecedence.length && initialPosition !== "floating") {
+    if (
+      autoPosition &&
+      positionPrecedence.length &&
+      initialPosition !== "floating"
+    ) {
       const mappedPlacements = positionPrecedence
         .map((p) => resolveTooltipPlacement(p, false))
         .filter((p) => p !== "center");
@@ -179,7 +187,7 @@ export const Tooltip = (
     };
 
     position.val = autoPosition
-      ? (placementToPosition[result.placement] ?? initialPosition)
+      ? placementToPosition[result.placement] ?? initialPosition
       : initialPosition;
 
     top.val = `${result.y}px`;
@@ -213,7 +221,11 @@ export const Tooltip = (
       onclick: onClick ?? null,
     },
     [
-      TooltipArrow({ tooltipPosition: position, tooltipBottomOverflow, arrowStyles }),
+      TooltipArrow({
+        tooltipPosition: position,
+        tooltipBottomOverflow,
+        arrowStyles,
+      }),
       [children],
     ]
   );
