@@ -125,8 +125,12 @@ export const Tooltip = (
   const position = dom.state<TooltipPosition>(initialPosition);
   const arrowStyles = dom.state<TooltipArrowStyles>({});
   const tooltipBottomOverflow = dom.state<boolean>(false);
-  // Set to "fixed" when the overlap fallback kicks in so coords are viewport-relative
-  // regardless of offsetParent. Inline style beats any CSS class specificity.
+  // Inline position keeps fixed-anchor tooltips correct regardless of offsetParent.
+  // Floating tooltips use "absolute" so they appear only once in fullPage screenshots
+  // (position: fixed duplicates in every stitched viewport segment).
+  const positioningStrategy = dom.state<"fixed" | "absolute">(
+    isFixed(element) ? "fixed" : "absolute"
+  );
 
   let cleanupAutoUpdate: (() => void) | null = null;
 
@@ -152,10 +156,10 @@ export const Tooltip = (
       }
     }
 
-    // Floating steps are viewport-centered and must use fixed positioning so
-    // that centering is independent of scroll position and offsetParent location.
-    const strategy =
-      initialPosition === "floating" || isFixed(element) ? "fixed" : "absolute";
+    // Elements with a CSS fixed ancestor need fixed positioning so coordinates
+    // are viewport-relative. All other cases (including floating/centered steps)
+    // use absolute so the tooltip is document-positioned and scroll-aware.
+    const strategy = isFixed(element) ? "fixed" : "absolute";
 
     const result = computePosition({
       reference: element,
@@ -190,6 +194,7 @@ export const Tooltip = (
       ? placementToPosition[result.placement] ?? initialPosition
       : initialPosition;
 
+    positioningStrategy.val = strategy;
     top.val = `${result.y}px`;
     left.val = `${result.x}px`;
 
@@ -213,7 +218,7 @@ export const Tooltip = (
   const tooltip = div(
     {
       style: () =>
-        `top: ${top.val}; right: auto; bottom: auto; left: ${left.val}; margin: 0; opacity: ${opacity.val}`,
+        `position: ${positioningStrategy.val}; top: ${top.val}; right: auto; bottom: auto; left: ${left.val}; margin: 0; opacity: ${opacity.val}`,
       className: () =>
         `${tooltipClassName} introjs-${position.val} ${className || ""}`,
       role: "dialog",
