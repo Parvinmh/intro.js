@@ -15,8 +15,8 @@ export function setupElementClickTrigger(
   }
 
   const handler = (event: Event) => {
-    const target = event.target as Element;
-    if (target.matches(trigger.selector)) {
+    const target = (event.target as Element).closest(trigger.selector);
+    if (target) {
       if (trigger.delay) {
         setTimeout(() => callback(campaignId, trigger), trigger.delay);
       } else {
