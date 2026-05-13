@@ -14,19 +14,26 @@ export function setupFormInteractionTrigger(
     return () => {};
   }
 
-  const selector =
-    trigger.selector || "form input, form textarea, form select";
+  const selector = trigger.selector || "form input, form textarea, form select";
+  const interactionType = trigger.interactionType ?? "focus";
+  const eventName =
+    interactionType === "input" ? "input" :
+    interactionType === "change" ? "change" :
+    "focus";
+
+  // focus doesn't bubble — use capture phase; input/change bubble natively
+  const useCapture = eventName === "focus";
 
   const handler = (event: Event) => {
     const target = event.target as Element;
-    if (target.matches(selector)) {
+    if (target.closest(selector)) {
       callback(campaignId, trigger);
     }
   };
 
-  DOMEvent.on(document, "focus" as any, handler, true);
-  
+  DOMEvent.on(document, eventName as any, handler, useCapture);
+
   return () => {
-    DOMEvent.off(document, "focus" as any, handler, true);
+    DOMEvent.off(document, eventName as any, handler, useCapture);
   };
 }
