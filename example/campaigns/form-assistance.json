@@ -17,7 +17,7 @@
       "frequency": {
         "type": "once"
       },
-      "tourOptions": {
+      "options": {
         "steps": [
           {
             "element": "#email-field",

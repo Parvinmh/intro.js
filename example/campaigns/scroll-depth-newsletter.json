@@ -16,7 +16,7 @@
       "frequency": {
         "type": "once"
       },
-      "tourOptions": {
+      "options": {
         "steps": [
           {
             "intro": "<h3>Enjoying our content?</h3><p>Subscribe to our newsletter for weekly updates and exclusive content!</p>",

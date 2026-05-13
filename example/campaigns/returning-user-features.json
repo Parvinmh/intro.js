@@ -17,7 +17,7 @@
       "frequency": {
         "type": "once"
       },
-      "tourOptions": {
+      "options": {
         "steps": [
           {
             "intro": "Welcome back! We noticed you've been here before. Let us show you some advanced features!",

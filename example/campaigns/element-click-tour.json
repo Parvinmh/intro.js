@@ -17,7 +17,7 @@
       "frequency": {
         "type": "session"
       },
-      "tourOptions": {
+      "options": {
         "steps": [
           {
             "element": ".feature-panel",

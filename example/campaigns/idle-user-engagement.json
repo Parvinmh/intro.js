@@ -13,7 +13,7 @@
           "idleTime": 30000
         }
       ],
-      "tourOptions": {
+      "options": {
         "steps": [
           {
             "intro": "👋 Still here? Let us show you some features you might have missed!",

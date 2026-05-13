@@ -16,7 +16,7 @@
       "frequency": {
         "type": "once"
       },
-      "tourOptions": {
+      "options": {
         "steps": [
           {
             "element": "#step1",
