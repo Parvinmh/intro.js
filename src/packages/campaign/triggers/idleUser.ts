@@ -35,17 +35,28 @@ export function setupIdleUserTrigger(
     "scroll",
     "touchstart",
   ];
-  
+
   const handlers = events.map((event) => {
     const handler = resetTimer;
     DOMEvent.on(document, event as any, handler, true);
     return () => DOMEvent.off(document, event as any, handler, true);
   });
 
-  resetTimer(); // Start the timer
+  const handleVisibility = () => {
+    if (document.hidden) {
+      clearTimeout(idleTimer);
+    } else {
+      resetTimer();
+    }
+  };
+
+  DOMEvent.on(document, "visibilitychange" as any, handleVisibility, false);
+
+  resetTimer();
 
   return () => {
     clearTimeout(idleTimer);
     handlers.forEach((cleanup) => cleanup());
+    DOMEvent.off(document, "visibilitychange" as any, handleVisibility, false);
   };
 }
