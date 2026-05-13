@@ -18,5 +18,5 @@ export { setupSessionCountTrigger } from "./sessionCount";
 export { setupScrollDepthTrigger } from "./scrollDepth";
 export { setupElementVisibleTrigger } from "./elementVisible";
 
-export type { TriggerCallback, TriggerCleanup, TriggerSetup } from "./types";
+export type { TriggerCallback, TriggerCleanup } from "./types";
 export { detectDeviceType } from "./utils";

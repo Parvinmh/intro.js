@@ -243,43 +243,20 @@ export interface CampaignCollection {
 }
 
 /**
- * Campaign execution context
- */
-export interface CampaignContext {
-  campaign: Campaign;
-  trigger: CampaignTrigger;
-  user: {
-    isFirstVisit: boolean;
-    sessionCount: number;
-    lastVisit?: Date;
-    device: "mobile" | "tablet" | "desktop";
-    language: string;
-    userAgent: string;
-  };
-  page: {
-    url: string;
-    referrer: string;
-    title: string;
-    loadTime: Date;
-  };
-}
-
-/**
- * Campaign execution status
- */
-export interface CampaignExecutionStatus {
-  campaignId: string;
-  executed: boolean;
-  timestamp: Date;
-  trigger?: CampaignTrigger;
-  completed?: boolean;
-  skipped?: boolean;
-  error?: string;
-}
-
-/**
  * Type guard functions for triggers
  */
+export function isExitIntentTrigger(
+  trigger: CampaignTrigger
+): trigger is ExitIntentTrigger {
+  return trigger.type === "exit_intent";
+}
+
+export function isReturningUserTrigger(
+  trigger: CampaignTrigger
+): trigger is ReturningUserTrigger {
+  return trigger.type === "returning_user";
+}
+
 export function isElementClickTrigger(
   trigger: CampaignTrigger
 ): trigger is ElementClickTrigger {

@@ -9,17 +9,6 @@ export type TriggerCallback = (
 ) => void;
 
 /**
- * Trigger setup function type
- */
-export type TriggerSetup = {
-  setup: (
-    campaignId: string,
-    trigger: CampaignTrigger,
-    callback: TriggerCallback
-  ) => TriggerCleanup;
-};
-
-/**
  * Trigger cleanup function type
  */
 export type TriggerCleanup = () => void;

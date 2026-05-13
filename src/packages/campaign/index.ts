@@ -21,7 +21,7 @@
  *       active: true,
  *       mode: 'tour',
  *       triggers: [{ type: 'first_visit' }],
- *       tourOptions: {
+ *       options: {
  *         steps: [
  *           { element: '#step1', intro: 'Welcome!' }
  *         ]
