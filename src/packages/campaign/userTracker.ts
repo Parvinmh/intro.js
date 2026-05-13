@@ -1,3 +1,5 @@
+import { detectDeviceType } from "./triggers/utils";
+
 /**
  * User tracker - tracks user behavior and context
  */
@@ -15,7 +17,7 @@ export class UserTracker {
   /**
    * Initialize the user tracker
    */
-  async initialize(): Promise<void> {
+  initialize(): void {
     if (this.isInitialized) return;
 
     // Track session count
@@ -40,7 +42,7 @@ export class UserTracker {
     localStorage.setItem(lastVisitKey, Date.now().toString());
 
     // Detect device type
-    const device = this.detectDeviceType();
+    const device = detectDeviceType();
 
     // Get language
     const language = navigator.language || "en";
@@ -68,27 +70,6 @@ export class UserTracker {
       throw new Error("UserTracker not initialized. Call initialize() first.");
     }
     return this.userContext;
-  }
-
-  /**
-   * Detect device type based on screen size and user agent
-   */
-  private detectDeviceType(): "mobile" | "tablet" | "desktop" {
-    const width = window.innerWidth;
-    const userAgent = navigator.userAgent.toLowerCase();
-
-    if (
-      width <= 768 ||
-      /mobile|android|iphone|ipod|blackberry|iemobile|opera mini/i.test(
-        userAgent
-      )
-    ) {
-      return "mobile";
-    } else if (width <= 1024 || /tablet|ipad/i.test(userAgent)) {
-      return "tablet";
-    } else {
-      return "desktop";
-    }
   }
 
   /**
