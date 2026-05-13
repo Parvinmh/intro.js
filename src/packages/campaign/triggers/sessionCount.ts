@@ -13,11 +13,11 @@ export function setupSessionCountTrigger(
     return () => {};
   }
 
-  const cookieName = trigger.cookieName || "introjs-session-count";
-  const sessionCount =
-    parseInt(localStorage.getItem(cookieName) || "0", 10) + 1;
-
-  localStorage.setItem(cookieName, sessionCount.toString());
+  // userTracker manages this key — read without re-incrementing
+  const sessionCount = parseInt(
+    localStorage.getItem("introjs-campaign-session-count") || "0",
+    10
+  );
 
   let shouldTrigger = false;
   switch (trigger.operator) {
