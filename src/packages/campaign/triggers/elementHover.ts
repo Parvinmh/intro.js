@@ -14,20 +14,42 @@ export function setupElementHoverTrigger(
     return () => {};
   }
 
-  const handler = (event: Event) => {
-    const target = event.target as Element;
-    if (target.matches(trigger.selector)) {
-      if (trigger.delay) {
-        setTimeout(() => callback(campaignId, trigger), trigger.delay);
-      } else {
+  const hoverDuration = trigger.hoverDuration ?? 0;
+  let hoverTimer: number | null = null;
+  let activeTarget: Element | null = null;
+
+  const onMouseOver = (event: Event) => {
+    const target = (event.target as Element).closest(trigger.selector);
+    if (!target || target === activeTarget) return;
+
+    activeTarget = target;
+
+    if (hoverDuration > 0) {
+      hoverTimer = window.setTimeout(() => {
         callback(campaignId, trigger);
-      }
+      }, hoverDuration);
+    } else {
+      callback(campaignId, trigger);
     }
   };
 
-  DOMEvent.on(document, "mouseover" as any, handler, false);
-  
+  const onMouseOut = (event: Event) => {
+    const related = (event as MouseEvent).relatedTarget as Element | null;
+    if (activeTarget && (!related || !activeTarget.contains(related))) {
+      if (hoverTimer !== null) {
+        clearTimeout(hoverTimer);
+        hoverTimer = null;
+      }
+      activeTarget = null;
+    }
+  };
+
+  DOMEvent.on(document, "mouseover" as any, onMouseOver, false);
+  DOMEvent.on(document, "mouseout" as any, onMouseOut, false);
+
   return () => {
-    DOMEvent.off(document, "mouseover" as any, handler, false);
+    if (hoverTimer !== null) clearTimeout(hoverTimer);
+    DOMEvent.off(document, "mouseover" as any, onMouseOver, false);
+    DOMEvent.off(document, "mouseout" as any, onMouseOut, false);
   };
 }
