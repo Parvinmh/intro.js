@@ -25,7 +25,11 @@ export function setupUrlMatchTrigger(
       break;
     case "regex":
     default:
-      matches = new RegExp(trigger.pattern).test(currentUrl);
+      try {
+        matches = new RegExp(trigger.pattern).test(currentUrl);
+      } catch {
+        console.warn(`Invalid URL regex pattern: "${trigger.pattern}"`);
+      }
       break;
   }
 
