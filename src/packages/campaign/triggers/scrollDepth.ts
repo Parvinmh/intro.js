@@ -15,10 +15,12 @@ export function setupScrollDepthTrigger(
   }
 
   const handler = () => {
-    const scrollPercent =
-      (window.scrollY /
-        (document.documentElement.scrollHeight - window.innerHeight)) *
-      100;
+    const scrollableHeight =
+      document.documentElement.scrollHeight - window.innerHeight;
+
+    if (scrollableHeight <= 0) return;
+
+    const scrollPercent = (window.scrollY / scrollableHeight) * 100;
 
     if (scrollPercent >= trigger.percentage) {
       callback(campaignId, trigger);

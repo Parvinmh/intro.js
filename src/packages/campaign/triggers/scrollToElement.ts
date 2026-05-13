@@ -18,8 +18,10 @@ export function setupScrollToElementTrigger(
     const element = document.querySelector(trigger.selector);
     if (element) {
       const rect = element.getBoundingClientRect();
-      const threshold = trigger.threshold || 0.5;
       const elementHeight = rect.height;
+      if (elementHeight <= 0) return;
+
+      const threshold = trigger.threshold || 0.5;
       const visibleHeight =
         Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0);
       const visibilityRatio = visibleHeight / elementHeight;
