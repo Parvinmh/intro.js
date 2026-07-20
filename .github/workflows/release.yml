@@ -27,9 +27,6 @@ jobs:
       - name: Pull Cypress Docker image
         run: docker pull cypress/included:cypress-13.17.0-node-22.13.0-chrome-131.0.6778.264-1-ff-134.0-edge-131.0.2903.112-1
 
-      - name: Add host.docker.internal to /etc/hosts
-        run: echo "$(ip route | awk '/default/ {print $3}') host.docker.internal" | sudo tee -a /etc/hosts
-
       - name: Install dependencies
         run: npm ci
 
@@ -37,7 +34,11 @@ jobs:
         run: npm run build
 
       - name: Test
-        run: npm run test
+        run: |
+          npm run test:prettier
+          npm run test:jest
+          start-server-and-test dev http://localhost:10001/dist/intro.js \
+            'docker run --rm -i --network=host -v $PWD:/e2e -w /e2e --entrypoint=cypress cypress/included:cypress-13.17.0-node-22.13.0-chrome-131.0.6778.264-1-ff-134.0-edge-131.0.2903.112-1 run --env visualRegressionType=regression'
         env:
           CI: true
 
