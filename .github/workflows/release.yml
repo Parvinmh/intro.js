@@ -10,6 +10,7 @@ jobs:
     permissions:
       contents: write
       id-token: write
+      pull-requests: write
 
     steps:
       - uses: actions/checkout@v4
@@ -79,11 +80,21 @@ jobs:
           fi
           echo "$CHANGELOG" > /tmp/changelog_entry.md
 
+          git checkout -b "release/v$VERSION"
           git add package.json package-lock.json
           git commit -m "chore: release v$VERSION"
-          git tag "v$VERSION"
-          git push
-          git push --tags
+          git push origin "release/v$VERSION"
+
+      - name: Create release PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.bump.outputs.version }}"
+          gh pr create \
+            --title "chore: release v$VERSION" \
+            --body-file /tmp/changelog_entry.md \
+            --base master \
+            --head "release/v$VERSION"
 
       - name: Publish to npm
         run: npm publish --provenance --access public
@@ -93,3 +104,4 @@ jobs:
         with:
           tag_name: v${{ steps.bump.outputs.version }}
           body_path: /tmp/changelog_entry.md
+          target_commitish: release/v${{ steps.bump.outputs.version }}
