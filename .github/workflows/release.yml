@@ -98,7 +98,7 @@ jobs:
             --head "release/v$VERSION"
 
       - name: Publish to npm
-        run: npm publish --access public
+        run: npm publish --access public -v
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
