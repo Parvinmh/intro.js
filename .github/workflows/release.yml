@@ -22,6 +22,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22.x
+          registry-url: "https://registry.npmjs.org"
 
       - name: Pull Cypress Docker image
         run: docker pull cypress/included:cypress-13.17.0-node-22.13.0-chrome-131.0.6778.264-1-ff-134.0-edge-131.0.2903.112-1
@@ -95,6 +96,9 @@ jobs:
             --body-file /tmp/changelog_entry.md \
             --base master \
             --head "release/v$VERSION"
+
+      - name: Remove placeholder auth token to allow OIDC
+        run: sed -i '/_authToken/d' ~/.npmrc
 
       - name: Publish to npm
         run: npm publish --provenance --access public
