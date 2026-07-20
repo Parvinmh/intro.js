@@ -97,11 +97,8 @@ jobs:
             --base master \
             --head "release/v$VERSION"
 
-      - name: Remove placeholder auth token to allow OIDC
-        run: sed -i '/_authToken/d' "$NPM_CONFIG_USERCONFIG" 2>/dev/null || true
-
       - name: Publish to npm
-        run: npm publish --provenance --access public
+        run: npm publish --access public
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
