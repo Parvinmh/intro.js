@@ -87,6 +87,9 @@ jobs:
           git commit -m "chore: release v$VERSION"
           git push origin "release/v$VERSION"
 
+      - name: Rebuild with bumped version
+        run: npm run build
+
       - name: Create release PR
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -98,7 +101,14 @@ jobs:
             --base master \
             --head "release/v$VERSION"
 
+      - name: Prepare dist for publish
+        run: |
+          cp package.json dist/
+          cp -r themes dist/
+          cp ./*.md dist/ 2>/dev/null || true
+
       - name: Publish to npm
+        working-directory: dist
         run: npm publish
 
       - name: Create GitHub Release
